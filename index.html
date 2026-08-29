@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1F497D">
+<title>Escoja un número · Utadeo</title>
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+
+<header class="franja">
+  <h1 id="curso">Modelado y Simulación de Sistemas · Utadeo</h1>
+  <p>Respuesta anónima. Un solo toque.</p>
+</header>
+
+<main class="envoltura">
+  <h2 id="titulo">Escoja un número del 1 al 10</h2>
+  <p class="sub">El primero que se le venga a la cabeza.</p>
+
+  <div id="alerta" class="alerta" hidden></div>
+
+  <div class="rejilla" id="rejilla"></div>
+
+  <div class="aviso" id="aviso" hidden>
+    <strong id="avisoTexto"></strong>
+    <p>Ya puede dejar el celular. Los resultados salen en la pantalla.</p>
+    <button class="enlace" id="cambiar">Cambiar mi número</button>
+  </div>
+</main>
+
+<script type="module">
+import { votar, sesionActiva, configurado } from "./assets/datos.js";
+import { TITULO, CURSO } from "./assets/config.js";
+
+document.getElementById("titulo").textContent = TITULO;
+document.getElementById("curso").textContent = CURSO;
+
+const LLAVE = "voto_azar:" + sesionActiva;
+const rejilla = document.getElementById("rejilla");
+const aviso = document.getElementById("aviso");
+const avisoTexto = document.getElementById("avisoTexto");
+const alerta = document.getElementById("alerta");
+
+let enviando = false;
+
+function fallo(msg) {
+  alerta.hidden = false;
+  alerta.textContent = msg;
+}
+
+if (!configurado) {
+  fallo("Falta pegar las credenciales de Firebase en assets/config.js.");
+}
+
+// --- construir los diez botones -------------------------------------------
+for (let k = 1; k <= 10; k++) {
+  const b = document.createElement("button");
+  b.className = "num";
+  b.type = "button";
+  b.textContent = k;
+  b.dataset.k = k;
+  b.addEventListener("click", () => enviar(k));
+  rejilla.appendChild(b);
+}
+
+function marcar(k) {
+  document.querySelectorAll(".num").forEach(b => {
+    b.classList.toggle("elegido", Number(b.dataset.k) === k);
+  });
+  avisoTexto.textContent = "Quedó registrado el " + k + ".";
+  aviso.hidden = false;
+}
+
+async function enviar(k) {
+  if (enviando || !configurado) return;
+  enviando = true;
+  const anterior = Number(localStorage.getItem(LLAVE)) || null;
+  if (anterior === k) { enviando = false; return; }
+  try {
+    await votar(k, anterior);
+    localStorage.setItem(LLAVE, String(k));
+    marcar(k);
+    alerta.hidden = true;
+  } catch (e) {
+    console.error(e);
+    fallo("No se pudo registrar. Revise la conexión y toque otra vez.");
+  }
+  enviando = false;
+}
+
+document.getElementById("cambiar").addEventListener("click", () => {
+  aviso.hidden = true;
+  document.querySelectorAll(".num").forEach(b => b.classList.remove("elegido"));
+});
+
+// Si el estudiante recarga la página, recupera lo que ya había enviado.
+const previo = Number(localStorage.getItem(LLAVE));
+if (previo >= 1 && previo <= 10) marcar(previo);
+</script>
+</body>
+</html>

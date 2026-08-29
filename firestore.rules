@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Actividad de clase. Documento por sesion con diez contadores.
+    // Abierto mientras dura el semestre: no guarda ningun dato personal,
+    // solo enteros. Al terminar, cambie las dos condiciones a  if false;
+    match /sesiones/{sesion} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Todo lo demas queda cerrado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

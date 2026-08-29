@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel · Escoja un número</title>
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+
+<header class="franja">
+  <h1>Panel de la actividad · <span id="ses"></span></h1>
+  <p>Proyecte esta pantalla. El QR lleva a la página de votación.</p>
+</header>
+
+<main class="envoltura ancho">
+
+  <div id="alerta" class="alerta" hidden></div>
+
+  <div class="dos">
+
+    <div class="tarjeta">
+      <h3>Para votar</h3>
+      <canvas id="qr" width="640" height="640"></canvas>
+      <a class="url" id="url" href="#"></a>
+      <div class="contador">
+        <div class="n" id="total">0</div>
+        <div class="et">respuestas</div>
+      </div>
+      <button class="btn sec" id="bajarQR" style="width:100%">Descargar el QR</button>
+    </div>
+
+    <div>
+      <div class="acciones">
+        <button class="btn" id="revelar">Mostrar resultados</button>
+        <button class="btn sec" id="ocultar" hidden>Ocultar</button>
+        <button class="btn sec" id="pantalla">Pantalla completa</button>
+      </div>
+
+      <div class="tarjeta" id="marco">
+        <div id="lienzo"></div>
+        <p class="pieFig">La cifra sobre cada barra es el número de respuestas;
+           el eje vertical las expresa como porcentaje del total.</p>
+      </div>
+
+      <div class="metricas" id="metricas" hidden></div>
+      <div class="veredicto" id="veredicto" hidden></div>
+    </div>
+
+  </div>
+
+  <div class="pie">
+    Sesión <code id="ses2"></code>.
+    <button id="reset">Reiniciar el conteo</button> ·
+    <button id="demo">Cargar distribución de ejemplo</button>
+  </div>
+</main>
+
+<script type="module">
+import { escuchar, reiniciar, sesionActiva, configurado } from "./assets/datos.js";
+import { resumen, fmt, CRIT_05 } from "./assets/estadistica.js";
+import { construirSVG } from "./assets/grafico.js";
+import { CLAVE_PANEL } from "./assets/config.js";
+import QRCode from "./assets/qrcode.js";
+
+const $ = id => document.getElementById(id);
+$("ses").textContent = sesionActiva;
+$("ses2").textContent = sesionActiva;
+
+let conteos = new Array(10).fill(0);
+let revelado = false;
+let demo = false;
+
+// --- URL de votación y QR --------------------------------------------------
+const urlVoto = location.href.replace(/panel\.html.*$/, "") +
+                (sesionActiva ? "?s=" + encodeURIComponent(sesionActiva) : "");
+$("url").textContent = urlVoto.replace(/^https?:\/\//, "");
+$("url").href = urlVoto;
+
+QRCode.toCanvas($("qr"), urlVoto,
+  { width: 640, margin: 1, errorCorrectionLevel: "M",
+    color: { dark: "#1F497D", light: "#FFFFFF" } },
+  err => {
+    if (!err) return;
+    console.error(err);
+    $("bajarQR").hidden = true;
+    const d = document.createElement("p");
+    d.style.cssText = "font-size:.9rem;color:#6B7280";
+    d.textContent = "El QR no se pudo dibujar. Dicte la dirección o use el enlace.";
+    $("qr").replaceWith(d);
+  });
+
+$("bajarQR").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.download = "qr-" + sesionActiva + ".png";
+  a.href = $("qr").toDataURL("image/png");
+  a.click();
+});
+
+// --- pintado ---------------------------------------------------------------
+function pintar() {
+  const res = resumen(conteos);
+  $("total").textContent = res.n;
+  $("lienzo").innerHTML = construirSVG(conteos, res, { revelado });
+
+  $("metricas").hidden = !revelado;
+  $("veredicto").hidden = !revelado;
+  if (!revelado || res.n === 0) return;
+
+  const fav = res.favoritos.join(" y ");
+  $("metricas").innerHTML = `
+    <div class="metrica"><div class="v">${fav}</div>
+      <div class="t">número más elegido</div></div>
+    <div class="metrica"><div class="v">${fmt(res.pctSiete, 1)} %</div>
+      <div class="t">escogió el 7 (uniforme: 10 %)</div></div>
+    <div class="metrica"><div class="v">${fmt(res.pctExtremos, 1)} %</div>
+      <div class="t">escogió 1 o 10 (uniforme: 20 %)</div></div>
+    <div class="metrica"><div class="v">${fmt(res.pctImpares, 1)} %</div>
+      <div class="t">escogió impar (uniforme: 50 %)</div></div>`;
+
+  const veredicto = res.rechaza05
+    ? "se rechaza la uniformidad al 5 %"
+    : "no alcanza para rechazar la uniformidad al 5 %";
+
+  let nota = "";
+  if (!res.rechaza05 && res.nParaRechazar && res.n > 0) {
+    nota = `<br><br><strong>Sobre el tamaño de muestra.</strong>
+      Con estas proporciones fijas, X² crece proporcional a n. Manteniendo
+      la misma forma harían falta cerca de ${res.nParaRechazar} respuestas
+      para cruzar el valor crítico. Un curso de 25 personas casi nunca basta
+      para rechazar, aunque el sesgo se vea en las barras.`;
+  }
+
+  $("veredicto").innerHTML =
+    `<strong>Contraste chi-cuadrado de bondad de ajuste.</strong><br>
+     Con n = ${res.n} y frecuencia esperada E = ${fmt(res.esperado, 1)} por número:
+     <code>X² = ${fmt(res.x2)}</code> con ${res.gl} grados de libertad,
+     contra el valor crítico ${fmt(CRIT_05, 3)}. El p-valor es
+     ${res.p < 0.001 ? "menor que 0,001" : fmt(res.p, 3)}, así que
+     ${veredicto}.${nota}`;
+}
+
+// --- botones ---------------------------------------------------------------
+$("revelar").addEventListener("click", () => {
+  revelado = true; $("revelar").hidden = true; $("ocultar").hidden = false; pintar();
+});
+$("ocultar").addEventListener("click", () => {
+  revelado = false; $("revelar").hidden = false; $("ocultar").hidden = true; pintar();
+});
+
+$("pantalla").addEventListener("click", () => {
+  const m = $("marco");
+  if (document.fullscreenElement) document.exitFullscreen();
+  else m.requestFullscreen && m.requestFullscreen();
+});
+
+$("reset").addEventListener("click", async () => {
+  if (prompt("Clave del panel:") !== CLAVE_PANEL) return;
+  try { await reiniciar(); } catch (e) { console.error(e); }
+  revelado = false; $("revelar").hidden = false; $("ocultar").hidden = true;
+});
+
+// Respaldo para clase sin conexión: distribución típica del experimento.
+$("demo").addEventListener("click", () => {
+  demo = true;
+  conteos = [3, 5, 15, 9, 8, 7, 28, 10, 6, 9];
+  pintar();
+});
+
+// --- escucha en vivo -------------------------------------------------------
+if (configurado) {
+  escuchar(c => { if (!demo) { conteos = c; pintar(); } });
+} else {
+  $("alerta").hidden = false;
+  $("alerta").textContent =
+    "Falta pegar las credenciales de Firebase en assets/config.js. " +
+    "Mientras tanto puede usar la distribución de ejemplo.";
+}
+pintar();
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+:root{
+  --navy:#00558F;
+  --tema:#1F497D;
+  --tinta:#243746;
+  --gris:#6B7280;
+  --palido:#EAF1F8;
+  --liq:#BFD7EC;
+  --borde:#D8E2EC;
+  --ambar:#B45309;
+}
+
+*{box-sizing:border-box}
+
+html,body{margin:0;padding:0}
+
+body{
+  font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  color:var(--tinta);
+  background:#FFFFFF;
+  -webkit-text-size-adjust:100%;
+}
+
+.franja{
+  background:var(--tema);
+  color:#fff;
+  padding:14px 20px;
+}
+.franja h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:.2px}
+.franja p{margin:3px 0 0;font-size:.82rem;opacity:.85}
+
+.envoltura{max-width:980px;margin:0 auto;padding:22px 18px 48px}
+.envoltura.ancho{max-width:1500px}
+
+h2{font-size:1.5rem;color:var(--tema);margin:0 0 6px}
+.sub{color:var(--gris);font-size:.95rem;margin:0 0 22px}
+
+/* ---------------- votación ---------------- */
+.rejilla{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+@media(min-width:560px){ .rejilla{grid-template-columns:repeat(5,1fr)} }
+
+.num{
+  appearance:none;
+  border:2px solid var(--borde);
+  background:#fff;
+  color:var(--navy);
+  font-size:1.9rem;
+  font-weight:700;
+  padding:21px 0;
+  border-radius:14px;
+  cursor:pointer;
+  transition:transform .08s ease, background .12s ease, border-color .12s ease;
+  font-family:inherit;
+}
+.num:hover{border-color:var(--navy);background:var(--palido)}
+.num:active{transform:scale(.96)}
+.num.elegido{background:var(--navy);border-color:var(--navy);color:#fff}
+
+.aviso{
+  margin-top:26px;
+  padding:18px 20px;
+  border-left:5px solid var(--navy);
+  background:var(--palido);
+  border-radius:0 10px 10px 0;
+}
+.aviso strong{font-size:1.05rem}
+.aviso p{margin:6px 0 0;color:var(--gris);font-size:.92rem}
+
+.enlace{
+  background:none;border:none;padding:0;margin-top:10px;
+  color:var(--navy);text-decoration:underline;cursor:pointer;
+  font-size:.9rem;font-family:inherit;
+}
+
+/* ---------------- panel ---------------- */
+.dos{display:grid;grid-template-columns:1fr;gap:26px;align-items:start}
+@media(min-width:900px){ .dos{grid-template-columns:320px 1fr} }
+
+.tarjeta{
+  border:1px solid var(--borde);
+  border-radius:14px;
+  padding:18px;
+  background:#fff;
+}
+.tarjeta h3{margin:0 0 12px;font-size:1rem;color:var(--tema)}
+
+#qr{display:block;width:100%;height:auto;max-width:260px;margin:0 auto}
+
+.url{
+  display:block;margin-top:12px;text-align:center;word-break:break-all;
+  font-size:.9rem;color:var(--navy);font-weight:600;
+}
+
+.contador{
+  text-align:center;
+  padding:18px 0 4px;
+}
+.contador .n{font-size:3.4rem;font-weight:700;color:var(--navy);line-height:1}
+.contador .et{font-size:.85rem;color:var(--gris);text-transform:uppercase;letter-spacing:1px}
+
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 22px}
+.btn{
+  font-family:inherit;font-size:.95rem;font-weight:600;
+  padding:11px 20px;border-radius:9px;cursor:pointer;border:2px solid var(--navy);
+  background:var(--navy);color:#fff;
+}
+.btn.sec{background:#fff;color:var(--navy)}
+.btn:active{transform:scale(.98)}
+
+.metricas{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:12px;margin-top:20px;
+}
+@media(min-width:900px){ .metricas{grid-template-columns:repeat(4,1fr)} }
+.metrica{
+  border:1px solid var(--borde);border-radius:11px;padding:13px 15px;background:var(--palido);
+}
+.metrica .v{font-size:1.5rem;font-weight:700;color:var(--tema)}
+.metrica .t{font-size:.78rem;color:var(--gris);margin-top:3px;line-height:1.35}
+
+.veredicto{
+  margin-top:18px;padding:15px 18px;border-radius:11px;
+  border-left:5px solid var(--ambar);background:#FDF6EC;font-size:.95rem;line-height:1.5;
+}
+.veredicto code{font-family:"JetBrains Mono",Consolas,monospace;font-size:.9rem}
+
+.pie{margin-top:34px;color:var(--gris);font-size:.8rem;border-top:1px solid var(--borde);padding-top:14px}
+.pie button{background:none;border:none;color:var(--gris);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:.8rem;padding:0}
+
+.alerta{
+  margin:18px 0;padding:14px 18px;border-radius:10px;
+  background:#FDECEC;border-left:5px solid #B3261E;font-size:.9rem;
+}
+
+.pieFig{margin:10px 2px 0;font-size:.82rem;color:var(--gris);font-style:italic}
+
+.tarjeta:fullscreen{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:36px 48px;background:#fff;
+}
+.tarjeta:fullscreen #lienzo svg{max-height:82vh}

@@ -5,12 +5,12 @@
 // 1) Pegue aquí el bloque que Firebase le entrega en
 //    Configuración del proyecto > Tus apps > Configuración del SDK.
 export const firebaseConfig = {
-  apiKey: "PEGUE_AQUI",
-  authDomain: "PEGUE_AQUI.firebaseapp.com",
-  projectId: "PEGUE_AQUI",
-  storageBucket: "PEGUE_AQUI.firebasestorage.app",
-  messagingSenderId: "PEGUE_AQUI",
-  appId: "PEGUE_AQUI"
+  apiKey: "AIzaSyAqatwEZKVR2o_0hhj3DHayQ0FiFjKEORQ",
+  authDomain: "azar-tadeo.firebaseapp.com",
+  projectId: "azar-tadeo",
+  storageBucket: "azar-tadeo.firebasestorage.app",
+  messagingSenderId: "33435603193",
+  appId: "1:33435603193:web:5df27b3d889e53efb5d228"
 };
 
 // 2) Identificador de la sesión. Cambie el valor en cada clase o cada semestre

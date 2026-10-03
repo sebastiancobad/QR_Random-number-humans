@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador Chingaza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout. Boletín hidrológico de una sola pantalla. Controles y salidas a la izquierda, curva del embalse a la derecha; en celular todo en una columna. */
+:root {
+  --bg: #F1F5F4;
+  --panel: #FFFFFF;
+  --fg: #16262B;
+  --muted: #56686D;
+  --line: #CAD6D5;
+  --water: #0F6E8C;
+  --water-soft: rgba(15, 110, 140, 0.14);
+  --gold: #A86E12;
+  --sky: #3B72A8;
+  --danger: #B23E2B;
+  --ok: #2F7A4F;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E181B; --panel: #15242A; --fg: #E2ECEC; --muted: #93A6AA; --line: #2B3E44;
+    --water: #5DB6D3; --water-soft: rgba(93, 182, 211, 0.16); --gold: #E2A84A; --sky: #8CB6E6;
+    --danger: #EC7A62; --ok: #6CC08D; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E181B; --panel: #15242A; --fg: #E2ECEC; --muted: #93A6AA; --line: #2B3E44;
+  --water: #5DB6D3; --water-soft: rgba(93, 182, 211, 0.16); --gold: #E2A84A; --sky: #8CB6E6;
+  --danger: #EC7A62; --ok: #6CC08D; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 28px; display: grid; gap: 18px; }
+header h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 6vw, 46px); line-height: 1; margin: 0; letter-spacing: 0.01em; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.grid { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.side { display: grid; gap: 18px; }
+.ctrl { display: grid; gap: 4px; }
+.ctrl + .ctrl { margin-top: 16px; }
+.ctrl label { font-weight: 600; }
+.ctrl .row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.big { font-family: var(--display); font-weight: 600; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--water); }
+.unit { font-size: 15px; color: var(--muted); font-family: var(--body); font-weight: 400; }
+.hint { font-size: 13.5px; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--water); height: 28px; }
+input[type="range"]:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.chips button { font: 600 14px var(--body); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.chips button:hover { border-color: var(--water); }
+.chips button[aria-pressed="true"] { background: var(--water); border-color: var(--water); color: var(--panel); }
+.chips button:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+.outs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 18px; }
+.out { display: grid; gap: 2px; padding-block: 8px; border-top: 1px solid var(--line); }
+.out .k { font-size: 13.5px; color: var(--muted); }
+.out .v { font-family: var(--display); font-weight: 600; font-size: 26px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.out .v.warn { color: var(--gold); }
+.out .v.bad { color: var(--danger); }
+.out .v.good { color: var(--ok); }
+.chart h2 { font-family: var(--display); font-weight: 600; font-size: 22px; margin: 0 0 4px; letter-spacing: 0.01em; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--muted); margin-bottom: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 0; border-top: 3px solid var(--water); display: inline-block; }
+.sw.dot { width: 10px; height: 10px; border: 2px solid var(--fg); border-radius: 50%; background: var(--panel); }
+.sw.gold { border-top: 2px dashed var(--gold); }
+.sw.sky { border-top: 2px dotted var(--sky); }
+#plot { width: 100%; display: block; }
+#plot text { font-family: var(--body); fill: var(--muted); font-size: 12.5px; }
+#plot .axis { stroke: var(--muted); stroke-width: 1; }
+#plot .grid { stroke: var(--line); stroke-width: 1; }
+#plot .lvl { fill: none; stroke: var(--water); stroke-width: 2.6; stroke-linejoin: round; }
+#plot .area { fill: var(--water-soft); stroke: none; }
+#plot .u36 { stroke: var(--gold); stroke-width: 1.6; stroke-dasharray: 6 5; }
+#plot .u70 { stroke: var(--sky); stroke-width: 1.6; stroke-dasharray: 2 4; }
+#plot .oct { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 4; }
+#plot .dato { fill: var(--panel); stroke: var(--fg); stroke-width: 1.8; }
+#plot .lab36 { fill: var(--gold); font-weight: 600; }
+#plot .lab70 { fill: var(--sky); font-weight: 600; }
+.model { font-size: 14px; color: var(--muted); max-width: 90ch; }
+.model b { color: var(--fg); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .chips button { transition: background 0.15s, border-color 0.15s; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Embalse de Chingaza</h1>
+    <p>Simulador del nivel del embalse durante el racionamiento de agua de Bogotá, del 11 de abril de 2024 al 12 de abril de 2025.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="Controles">
+        <div class="ctrl">
+          <div class="row"><label for="qe">Extracción hacia Bogotá</label><span class="big" id="qeV">10,5<span class="unit"> m³/s</span></span></div>
+          <input id="qe" type="range" min="5" max="14" step="0.05" value="10.5">
+          <span class="hint">Con racionamiento 10,5 m³/s y sin racionamiento 11,95 m³/s.</span>
+        </div>
+        <div class="ctrl">
+          <div class="row"><label for="ll">Lluvia del año</label><span class="big" id="llV">100<span class="unit"> %</span></span></div>
+          <input id="ll" type="range" min="50" max="130" step="1" value="100">
+          <span class="hint">Aportes de ríos y lluvia en % de los de 2024 a 2025.</span>
+        </div>
+        <div class="chips" role="group" aria-label="Escenarios">
+          <button type="button" id="sc1" data-qe="10.5" data-ll="100">Con racionamiento</button>
+          <button type="button" id="sc2" data-qe="11.95" data-ll="100">Sin racionamiento</button>
+          <button type="button" id="sc3" data-qe="10.5" data-ll="80">Año seco</button>
+          <button type="button" id="sc4" data-qe="5.55" data-ll="100">Meta 70 % en octubre</button>
+        </div>
+      </section>
+
+    <section class="panel chart" aria-label="Gráfica del nivel">
+      <h2>Nivel del sistema Chingaza</h2>
+      <div class="legend">
+        <span><i class="sw"></i>Simulación</span>
+        <span><i class="sw dot"></i>Datos del Acueducto</span>
+        <span><i class="sw gold"></i>36 %, umbral del racionamiento</span>
+        <span><i class="sw sky"></i>70 %, meta de octubre</span>
+      </div>
+      <div id="box"><svg id="plot" role="img" aria-label="Nivel del embalse en porcentaje de la capacidad durante un año"></svg></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Resultados">
+        <div class="outs" aria-live="polite">
+          <div class="out"><span class="k">Nivel el 1 de octubre de 2024</span><span class="v" id="o1">0</span></div>
+          <div class="out"><span class="k">Nivel mínimo desde el 1 de octubre</span><span class="v" id="o2">0</span></div>
+          <div class="out"><span class="k">Primer día bajo 36 % desde el 1 de octubre</span><span class="v" id="o3">0</span></div>
+          <div class="out"><span class="k">Nivel el 12 de abril de 2025</span><span class="v" id="o4">0</span></div>
+          <div class="out"><span class="k">Embalse vacío</span><span class="v" id="o5">0</span></div>
+          <div class="out"><span class="k">Error frente a los 12 datos, RECM</span><span class="v" id="o6">0</span></div>
+        </div>
+      </section>
+
+  <p class="model"><b>Modelo.</b> Nivel de mañana = nivel de hoy + k × (aportes × lluvia − extracción). k = 0,02955 % por día por cada m³/s, porque la capacidad es 292,4 millones de m³. Los aportes diarios siguen un ciclo de lluvias ajustado con Solver a los 12 niveles que publicaron la Alcaldía de Bogotá y el Acueducto. Curso Modelado y Simulación de Sistemas, Universidad de Bogotá Jorge Tadeo Lozano.</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var N0 = 16.32, VMAX = 118e6 / 0.4036, K = 100 * 86400 / VMAX;
+  var A = 0.0628, B1 = 0.1626, T1 = 64.6, B2 = 0.188, T2 = 41.6, QFIT = 10.5;
+  var W = 2 * Math.PI / 365, DIAS = 366, OCT = 173;
+  var TD = [2, 29, 110, 162, 169, 173, 180, 192, 220, 265, 329, 366];
+  var ND = [15.87, 20.28, 50.00, 45.01, 43.98, 43.97, 43.36, 43.98, 52.63, 46.45, 38.84, 40.36];
+  var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  var D0 = Date.UTC(2024, 3, 11);
+
+  function qa(t) { return (A + B1 * Math.cos(W * (t - T1)) + B2 * Math.cos(2 * W * (t - T2))) / K + QFIT; }
+  function simular(qe, ll) {
+    var n = [N0];
+    for (var d = 0; d < DIAS; d++) {
+      var x = n[d] + K * (ll / 100 * qa(d) - qe);
+      n.push(Math.min(100, Math.max(0, x)));
+    }
+    return n;
+  }
+  function fecha(d, corto) {
+    var f = new Date(D0 + d * 86400000);
+    return corto ? CORTO[f.getUTCMonth()] : f.getUTCDate() + " de " + MESES[f.getUTCMonth()] + " de " + f.getUTCFullYear();
+  }
+  function num(v, k) { return v.toFixed(k).replace(".", ",").replace("-", "−"); }
+
+  var qe = document.getElementById("qe"), ll = document.getElementById("ll");
+  var svg = document.getElementById("plot"), box = document.getElementById("box");
+  var NS = "http://www.w3.org/2000/svg";
+
+  function el(tag, attrs, txt) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (txt !== undefined) e.textContent = txt;
+    svg.appendChild(e);
+    return e;
+  }
+
+  function dibujar(n) {
+    var w = Math.max(300, box.clientWidth), h = w < 560 ? 260 : 340;
+    var L = 40, R = 14, T = 12, Bm = 30;
+    var ymax = Math.max(80, Math.ceil(Math.max.apply(null, n) / 10) * 10);
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.setAttribute("height", h);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var X = function (d) { return L + (w - L - R) * d / DIAS; };
+    var Y = function (v) { return T + (h - T - Bm) * (1 - v / ymax); };
+    for (var v = 0; v <= ymax; v += 10) {
+      el("line", { x1: L, x2: w - R, y1: Y(v), y2: Y(v), "class": v === 0 ? "axis" : "grid" });
+      el("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, String(v));
+    }
+    var ticks = [20, 51, 81, 112, 143, 173, 204, 234, 265, 296, 324, 355];
+    ticks.forEach(function (d, i) {
+      var f = new Date(D0 + d * 86400000);
+      var lab = CORTO[f.getUTCMonth()] + ((i === 0 || f.getUTCMonth() === 0) ? " " + f.getUTCFullYear() : "");
+      if (w < 560 && i % 2 === 1) return;
+      el("text", { x: X(d), y: h - 8, "text-anchor": "middle" }, lab);
+    });
+    el("line", { x1: X(OCT), x2: X(OCT), y1: T, y2: Y(0), "class": "oct" });
+    var pts = n.map(function (v, d) { return X(d).toFixed(1) + "," + Y(v).toFixed(1); });
+    el("path", { d: "M" + X(0) + "," + Y(0) + " L" + pts.join(" L") + " L" + X(DIAS) + "," + Y(0) + " Z", "class": "area" });
+    el("line", { x1: L, x2: w - R, y1: Y(36), y2: Y(36), "class": "u36" });
+    el("line", { x1: L, x2: w - R, y1: Y(70), y2: Y(70), "class": "u70" });
+    el("text", { x: L + 6, y: Y(36) - 6, "text-anchor": "start", "class": "lab36" }, "36 %");
+    el("text", { x: L + 6, y: Y(70) - 6, "text-anchor": "start", "class": "lab70" }, "70 %");
+    el("polyline", { points: pts.join(" "), "class": "lvl" });
+    TD.forEach(function (t, i) { el("circle", { cx: X(t), cy: Y(ND[i]), r: 4.2, "class": "dato" }); });
+  }
+
+  function salidas(n) {
+    var o1 = n[OCT], o2 = Math.min.apply(null, n.slice(OCT)), o4 = n[DIAS];
+    var d36 = -1, d0 = -1, i;
+    for (i = OCT; i <= DIAS; i++) if (n[i] < 36) { d36 = i; break; }
+    for (i = 0; i <= DIAS; i++) if (n[i] <= 0) { d0 = i; break; }
+    var s = 0; TD.forEach(function (t, j) { s += Math.pow(n[t] - ND[j], 2); });
+    var set = function (id, txt, cls) { var e = document.getElementById(id); e.textContent = txt; e.className = "v" + (cls ? " " + cls : ""); };
+    set("o1", num(o1, 1) + " %", o1 >= 70 ? "good" : (o1 < 36 ? "warn" : ""));
+    set("o2", num(o2, 1) + " %", o2 <= 0 ? "bad" : (o2 < 36 ? "warn" : ""));
+    set("o3", d36 < 0 ? "No baja" : fecha(d36), d36 < 0 ? "good" : "warn");
+    set("o4", num(o4, 1) + " %", "");
+    set("o5", d0 < 0 ? "No se vacía" : fecha(d0), d0 < 0 ? "good" : "bad");
+    set("o6", num(Math.sqrt(s / TD.length), 2) + " %", "");
+  }
+
+  function actualizar() {
+    var q = parseFloat(qe.value), l = parseFloat(ll.value);
+    document.getElementById("qeV").firstChild.nodeValue = num(q, 2).replace(/0$/, "");
+    document.getElementById("llV").firstChild.nodeValue = String(l);
+    document.querySelectorAll(".chips button").forEach(function (b) {
+      var on = Math.abs(parseFloat(b.dataset.qe) - q) < 0.001 && Math.abs(parseFloat(b.dataset.ll) - l) < 0.001;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    var n = simular(q, l);
+    dibujar(n); salidas(n);
+  }
+
+  qe.addEventListener("input", actualizar);
+  ll.addEventListener("input", actualizar);
+  document.querySelectorAll(".chips button").forEach(function (b) {
+    b.addEventListener("click", function () { qe.value = b.dataset.qe; ll.value = b.dataset.ll; actualizar(); });
+  });
+  if (window.ResizeObserver) new ResizeObserver(function () { actualizar(); }).observe(box);
+  else window.addEventListener("resize", actualizar);
+  actualizar();
+})();
+</script>
+
+</body>
+</html>

@@ -173,3 +173,12 @@ pisan.
 En la pestaña **Reglas** de Firestore cambie las dos condiciones de
 `sesiones` a `if false;`. El sitio queda publicado y deja de aceptar
 escrituras. Para reabrirlo el semestre siguiente, vuelva a `if true;`.
+
+---
+
+## Simulador del embalse de Chingaza
+
+`chingaza/index.html` es el simulador de la clase de formación de modelos. Los
+estudiantes mueven la extracción hacia Bogotá y la lluvia del año y ven el nivel
+del sistema Chingaza contra los 12 datos del Acueducto. No usa Firebase.
+Dirección: <https://sebastiancobad.github.io/QR_Random-number-humans/chingaza/>

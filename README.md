@@ -182,3 +182,34 @@ escrituras. Para reabrirlo el semestre siguiente, vuelva a `if true;`.
 estudiantes mueven la extracción hacia Bogotá y la lluvia del año y ven el nivel
 del sistema Chingaza contra los 12 datos del Acueducto. No usa Firebase.
 Dirección: <https://sebastiancobad.github.io/QR_Random-number-humans/chingaza/>
+
+---
+
+## Actividad del metro de Bogotá
+
+`metro/` es la actividad de la clase de selección de la mejor solución del curso
+Principios de Ingeniería. Usa el mismo proyecto de Firebase, en el documento
+`sesiones/metro-s08-2026-2s`.
+
+| Archivo | Para quién | Qué hace |
+|---|---|---|
+| `metro/index.html` | estudiantes | actividad 1, elegir metro elevado o subterráneo con una razón a favor y una en contra; actividad 2, ordenar seis factores de la decisión |
+| `metro/tablero.html` | profesor | QR, conteo en vivo, muro de razones y posición promedio de los factores |
+
+Direcciones:
+
+- celulares: <https://sebastiancobad.github.io/QR_Random-number-humans/metro/>
+- tablero: <https://sebastiancobad.github.io/QR_Random-number-humans/metro/tablero.html>
+
+### El día de la clase
+
+1. Proyecte el tablero. En **Espera** el QR ocupa la pantalla.
+2. Presione **Actividad 1**. Los celulares cambian solos a la pregunta.
+3. Cuando el contador se estabilice, presione **Mostrar resultados**. Un clic
+   sobre una respuesta la oculta del tablero.
+4. Presione **Actividad 2** para el orden de los factores y repita el paso 3.
+
+**Reiniciar** pide la clave del panel y deja la sesión en cero. Para otro grupo
+agregue `?s=nombre-del-grupo` a la dirección del tablero; el QR ya incluye ese
+parámetro. Con `?demo` todo corre sin red en el mismo equipo, útil para ensayar.
+**Cargar ejemplo** muestra respuestas de muestra si la red del salón falla.

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C8161D">
+<title>Actividad del metro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="metro.css">
+</head>
+<body>
+<main class="cel">
+  <header class="cel-cabeza">
+    <div class="curso">Principios de Ingeniería</div>
+    <div class="linea-metro" id="linea" aria-label="Avance de la actividad"></div>
+  </header>
+
+  <section id="vEspera" class="aviso">
+    <div class="ico" data-ico="smartphone"></div>
+    <h2>La actividad empieza en un momento</h2>
+    <p>Deje esta página abierta. Cambia sola cuando el profesor inicie.</p>
+  </section>
+
+  <section id="v1" hidden>
+    <h1>¿Metro elevado o subterráneo?</h1>
+    <p class="ayuda">Elija la opción que usted construiría en Bogotá.</p>
+    <div class="opciones" id="opciones">
+      <button class="opcion e" data-k="e" type="button" aria-pressed="false">
+        <span class="marca" data-ico="circle-check"></span>
+        <span class="ico" data-ico="train-front"></span>
+        <span class="rot">Metro elevado</span>
+      </button>
+      <button class="opcion s" data-k="s" type="button" aria-pressed="false">
+        <span class="marca" data-ico="circle-check"></span>
+        <span class="ico" data-ico="train-front-tunnel"></span>
+        <span class="rot">Metro subterráneo</span>
+      </button>
+    </div>
+    <div class="campo">
+      <label for="favor">Una razón a favor de su elección</label>
+      <textarea id="favor" maxlength="140" placeholder="Por ejemplo, cuesta menos"></textarea>
+      <div class="cuenta"><span id="cFavor">0</span> de 140</div>
+    </div>
+    <div class="campo">
+      <label for="contra">Una razón en contra de su elección</label>
+      <textarea id="contra" maxlength="140" placeholder="Por ejemplo, hace más ruido"></textarea>
+      <div class="cuenta"><span id="cContra">0</span> de 140</div>
+    </div>
+    <button class="boton" id="enviar1" type="button" disabled>Enviar mis razones</button>
+  </section>
+
+  <section id="v1ok" class="aviso" hidden>
+    <div class="ico" data-ico="circle-check"></div>
+    <h2>Razones enviadas</h2>
+    <p id="resumen1">Mire el tablero del salón.</p>
+  </section>
+
+  <section id="v2" hidden>
+    <h1>¿Qué pesa más en la decisión?</h1>
+    <p class="ayuda">Toque los seis factores en orden, del más importante al menos importante.</p>
+    <div class="factores" id="factores"></div>
+    <button class="enlace" id="deNuevo" type="button">Empezar de nuevo</button>
+    <button class="boton" id="enviar2" type="button" disabled>Enviar mi orden</button>
+  </section>
+
+  <section id="v2ok" class="aviso" hidden>
+    <div class="ico" data-ico="circle-check"></div>
+    <h2>Orden enviado</h2>
+    <p>Mire el tablero del salón.</p>
+  </section>
+
+  <div id="alerta" class="alerta" role="alert" hidden></div>
+</main>
+
+<script type="module">
+import { ICONOS } from "./iconos.js";
+
+const $ = id => document.getElementById(id);
+const alerta = msg => { $("alerta").textContent = msg; $("alerta").hidden = !msg; };
+const iconos = raiz => raiz.querySelectorAll("[data-ico]").forEach(el => { el.innerHTML = ICONOS[el.dataset.ico] || ""; });
+iconos(document);
+
+let datos;
+try {
+  datos = await import("./datos.js");
+} catch (e) {
+  console.error(e);
+  alerta("No hay conexión con la base de datos. Revise el internet del celular y recargue la página.");
+  throw e;
+}
+const { escuchar, enviarRazones, enviarOrden, FACTORES, sesion } = datos;
+
+let ronda = 0, rev = 0, eleccion = null, orden = [];
+const llave = n => `metro:${sesion}:${rev}:${n}`;
+const leer = n => { try { return localStorage.getItem(llave(n)); } catch { return null; } };
+const guardar = (n, v) => { try { localStorage.setItem(llave(n), v); } catch { /* modo privado */ } };
+
+// ------------------------------------------------------------ línea de avance
+function pintarLinea() {
+  const est = [["Elección", 1], ["Factores", 2]];
+  const html = [];
+  est.forEach(([nombre, r], i) => {
+    if (i > 0) html.push(`<div class="tramo ${ronda >= r ? "hecho" : ""}"></div>`);
+    const cls = ronda === r ? "actual" : (ronda > r ? "hecha" : "");
+    html.push(`<div class="estacion ${cls}"><div class="punto"></div><div class="nombre">${nombre}</div></div>`);
+  });
+  $("linea").innerHTML = html.join("");
+}
+
+// ------------------------------------------------------------ vistas
+function vista() {
+  const ver = id => ["vEspera", "v1", "v1ok", "v2", "v2ok"].forEach(v => { $(v).hidden = v !== id; });
+  if (ronda === 1) {
+    if (leer("r1")) {
+      const k = leer("r1");
+      $("resumen1").textContent = `Usted eligió el metro ${k === "e" ? "elevado" : "subterráneo"}. Mire el tablero del salón.`;
+      ver("v1ok");
+    } else ver("v1");
+  } else if (ronda === 2) {
+    ver(leer("r2") ? "v2ok" : "v2");
+  } else ver("vEspera");
+  pintarLinea();
+}
+
+escuchar(d => {
+  ronda = Number(d.ronda) || 0;
+  rev = Number(d.rev) || 0;
+  alerta("");
+  vista();
+}, () => alerta("Se perdió la conexión con la base de datos. Recargue la página."));
+
+// ------------------------------------------------------------ actividad 1
+const favor = $("favor"), contra = $("contra");
+function validar1() {
+  $("cFavor").textContent = favor.value.length;
+  $("cContra").textContent = contra.value.length;
+  $("enviar1").disabled = !(eleccion && favor.value.trim().length >= 3 && contra.value.trim().length >= 3);
+}
+document.querySelectorAll(".opcion").forEach(b => b.addEventListener("click", () => {
+  eleccion = b.dataset.k;
+  $("opciones").classList.add("con-eleccion");
+  document.querySelectorAll(".opcion").forEach(o => {
+    const sel = o === b;
+    o.classList.toggle("elegida", sel);
+    o.setAttribute("aria-pressed", sel ? "true" : "false");
+  });
+  validar1();
+}));
+favor.addEventListener("input", validar1);
+contra.addEventListener("input", validar1);
+
+$("enviar1").addEventListener("click", async () => {
+  $("enviar1").disabled = true;
+  $("enviar1").textContent = "Enviando...";
+  try {
+    await enviarRazones(eleccion, favor.value.trim().slice(0, 140), contra.value.trim().slice(0, 140));
+    guardar("r1", eleccion);
+    alerta("");
+    vista();
+  } catch (e) {
+    console.error(e);
+    alerta("No se pudo enviar. Revise la conexión y toque de nuevo el botón.");
+    validar1();
+  } finally {
+    $("enviar1").textContent = "Enviar mis razones";
+  }
+});
+
+// ------------------------------------------------------------ actividad 2
+function pintarFactores() {
+  $("factores").innerHTML = "";
+  for (const f of FACTORES) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "factor";
+    b.dataset.id = f.id;
+    const pos = orden.indexOf(f.id);
+    if (pos >= 0) b.classList.add("puesto");
+    b.innerHTML = `<span class="pos">${pos >= 0 ? pos + 1 : ""}</span><span class="ico">${ICONOS[f.icono]}</span><span></span>`;
+    b.lastElementChild.textContent = f.nombre;
+    b.setAttribute("aria-label", pos >= 0 ? `${f.nombre}, posición ${pos + 1}` : f.nombre);
+    b.addEventListener("click", () => {
+      const i = orden.indexOf(f.id);
+      if (i >= 0) orden.splice(i, 1); else orden.push(f.id);
+      pintarFactores();
+    });
+    $("factores").appendChild(b);
+  }
+  $("enviar2").disabled = orden.length !== FACTORES.length;
+}
+pintarFactores();
+$("deNuevo").addEventListener("click", () => { orden = []; pintarFactores(); });
+
+$("enviar2").addEventListener("click", async () => {
+  $("enviar2").disabled = true;
+  $("enviar2").textContent = "Enviando...";
+  try {
+    await enviarOrden(orden.slice());
+    guardar("r2", "1");
+    alerta("");
+    vista();
+  } catch (e) {
+    console.error(e);
+    alerta("No se pudo enviar. Revise la conexión y toque de nuevo el botón.");
+    $("enviar2").disabled = false;
+  } finally {
+    $("enviar2").textContent = "Enviar mi orden";
+  }
+});
+</script>
+</body>
+</html>

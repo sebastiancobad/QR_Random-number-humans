@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de la actividad del metro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="metro.css">
+</head>
+<body>
+<div class="tablero" id="tablero">
+  <header class="tab-cabeza">
+    <div>
+      <h1 id="titulo">Actividad del metro</h1>
+      <div class="linea-metro" id="linea"></div>
+    </div>
+    <div class="qr-caja" id="qrCaja">
+      <canvas id="qrChico" width="300" height="300" aria-label="Código QR de la actividad"></canvas>
+      <div>
+        <div class="n" id="cuenta">0</div>
+        <div class="et" id="cuentaEt">respuestas</div>
+        <div class="url" id="url"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="tab-cuerpo" id="cuerpo"></main>
+
+  <footer class="tab-pie">
+    <div class="seg" role="group" aria-label="Actividad activa en los celulares">
+      <button type="button" data-r="0">Espera</button>
+      <button type="button" data-r="1">Actividad 1</button>
+      <button type="button" data-r="2">Actividad 2</button>
+    </div>
+    <button class="acc prim" id="revelar" type="button"><span class="ico" data-ico="eye"></span><span>Mostrar resultados</span></button>
+    <button class="acc" id="pantalla" type="button"><span class="ico" data-ico="maximize"></span><span>Pantalla completa</span></button>
+    <div class="ses">Sesión <span id="ses"></span>.
+      <button id="ejemplo" type="button">Cargar ejemplo</button>
+      <button id="reset" type="button">Reiniciar</button>
+    </div>
+  </footer>
+</div>
+
+<script type="module">
+import { ICONOS } from "./iconos.js";
+import QRCode from "../assets/qrcode.js";
+
+const $ = id => document.getElementById(id);
+const iconos = raiz => raiz.querySelectorAll("[data-ico]").forEach(el => { el.innerHTML = ICONOS[el.dataset.ico] || ""; });
+iconos(document);
+
+let datos;
+try {
+  datos = await import("./datos.js");
+} catch (e) {
+  console.error(e);
+  $("cuerpo").innerHTML = `<div class="oculto-msg"><p>No hay conexión con la base de datos. Revise el internet y recargue la página.</p></div>`;
+  throw e;
+}
+const { escuchar, fijarRonda, ocultarRazon, reiniciar, FACTORES, sesion, SESION_POR_DEFECTO, CLAVE_PANEL, EJEMPLO, modoDemo } = datos;
+
+// ------------------------------------------------------------ dirección y QR
+const base = location.href.replace(/tablero\.html.*$/, "");
+const partes = [];
+if (sesion !== SESION_POR_DEFECTO) partes.push("s=" + encodeURIComponent(sesion));
+if (modoDemo) partes.push("demo");
+const urlCel = base + (partes.length ? "?" + partes.join("&") : "");
+$("url").textContent = urlCel.replace(/^https?:\/\//, "");
+$("ses").textContent = sesion;
+const dibujarQR = (canvas, ancho) => QRCode.toCanvas(canvas, urlCel,
+  { width: ancho, margin: 1, errorCorrectionLevel: "M", color: { dark: "#23272E", light: "#FFFFFF" } },
+  err => err && console.error(err));
+dibujarQR($("qrChico"), 300);
+
+// ------------------------------------------------------------ estado
+let real = {}, d = {}, ronda = 0, revelado = false, ejemplo = false;
+
+const TITULOS = ["Actividad del metro", "¿Metro elevado o subterráneo?", "¿Qué pesa más en la decisión?"];
+
+function pintarLinea() {
+  const est = [["Espera", 0], ["Elección", 1], ["Factores", 2]];
+  const html = [];
+  est.forEach(([nombre, r], i) => {
+    if (i > 0) html.push(`<div class="tramo ${ronda >= r ? "hecho" : ""}"></div>`);
+    const cls = ronda === r ? "actual" : (ronda > r ? "hecha" : "");
+    html.push(`<div class="estacion ${cls}"><div class="punto"></div><div class="nombre">${nombre}</div></div>`);
+  });
+  $("linea").innerHTML = html.join("");
+}
+
+function pct(a, b) { return b ? Math.round(100 * a / b) : 0; }
+const coma = (x, n = 1) => x.toFixed(n).replace(".", ",");
+
+function vistaEspera() {
+  $("cuerpo").innerHTML = `<div class="espera"><canvas id="qrGrande" width="1040" height="1040"></canvas>
+    <div class="instr">Escanee el código con el celular<small>Deje la página abierta. Las preguntas aparecen cuando empiece cada actividad.</small></div></div>`;
+  dibujarQR($("qrGrande"), 1040);
+}
+
+function vistaOculta(n, texto) {
+  $("cuerpo").innerHTML = `<div class="oculto-msg"><div class="n">${n}</div><p>${texto}</p></div>`;
+}
+
+function tarjeta(r, campo) {
+  const div = document.createElement("div");
+  div.className = "tarjeta-r";
+  div.textContent = r[campo];
+  div.title = "Clic para ocultar esta respuesta";
+  div.addEventListener("click", async () => {
+    if (ejemplo) return;
+    if (!confirm("¿Ocultar esta respuesta del tablero?")) return;
+    try { await ocultarRazon(r); } catch (e) { console.error(e); }
+  });
+  return div;
+}
+
+function vistaRazones() {
+  const e = Number(d.e) || 0, s = Number(d.s) || 0, n = e + s;
+  const pe = pct(e, n), ps = n ? 100 - pe : 0;
+  $("cuerpo").innerHTML = `
+    <div class="reparto">
+      <div class="e" style="flex-basis:${n ? pe : 50}%">${n ? pe + " %" : ""}</div>
+      <div class="s" style="flex-basis:${n ? ps : 50}%">${n ? ps + " %" : ""}</div>
+    </div>
+    <div class="reparto-rot"><span>Metro elevado, ${e} ${e === 1 ? "voto" : "votos"}</span><span>Metro subterráneo, ${s} ${s === 1 ? "voto" : "votos"}</span></div>
+    <div class="muro" id="muro"></div>`;
+  const muro = $("muro");
+  const razones = (d.razones || []).slice().reverse();
+  for (const [k, nombre, ico] of [["e", "Metro elevado", "train-front"], ["s", "Metro subterráneo", "train-front-tunnel"]]) {
+    const lado = document.createElement("section");
+    lado.className = "lado " + k;
+    lado.innerHTML = `<h3><span class="ico">${ICONOS[ico]}</span>${nombre}</h3><div class="listas"></div>`;
+    for (const [campo, rot, icoL] of [["f", "A favor", "thumbs-up"], ["c", "En contra", "thumbs-down"]]) {
+      const lista = document.createElement("div");
+      lista.className = "lista";
+      lista.innerHTML = `<h4><span class="ico">${ICONOS[icoL]}</span>${rot}</h4>`;
+      razones.filter(r => r.k === k && r[campo]).forEach(r => lista.appendChild(tarjeta(r, campo)));
+      lado.querySelector(".listas").appendChild(lista);
+    }
+    muro.appendChild(lado);
+  }
+}
+
+function vistaFactores() {
+  const n = Number(d.n2) || 0;
+  const filas = FACTORES.map(f => {
+    const prom = n ? (Number(d["r_" + f.id]) || 0) / n : 0;
+    return { ...f, prom };
+  }).sort((a, b) => a.prom - b.prom);
+  const cont = document.createElement("div");
+  cont.className = "barras";
+  filas.forEach((f, i) => {
+    const ancho = n ? Math.max(6, 100 * (7 - f.prom) / 6) : 0;
+    const fila = document.createElement("div");
+    fila.className = "barra" + (i < 2 && n ? " top" : "");
+    fila.innerHTML = `<div class="nom"><span class="ico">${ICONOS[f.icono]}</span><span></span></div>
+      <div class="pista"><div class="relleno" style="width:${ancho}%"></div></div>
+      <div class="val">${n ? coma(f.prom) : "-"}<small>posición promedio</small></div>`;
+    fila.querySelector(".nom span:last-child").textContent = f.nombre;
+    cont.appendChild(fila);
+  });
+  $("cuerpo").innerHTML = "";
+  $("cuerpo").appendChild(cont);
+  const nota = document.createElement("p");
+  nota.className = "nota-tab";
+  nota.textContent = n ? `Orden de ${n} ${n === 1 ? "estudiante" : "estudiantes"}. La posición 1 es el factor más importante.` : "Todavía no hay órdenes enviados.";
+  $("cuerpo").appendChild(nota);
+}
+
+function pintar() {
+  $("titulo").textContent = TITULOS[ronda] || TITULOS[0];
+  pintarLinea();
+  document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", Number(b.dataset.r) === ronda));
+  const n = ronda === 2 ? (Number(d.n2) || 0) : (Number(d.n1) || 0);
+  $("cuenta").textContent = n;
+  $("cuentaEt").textContent = n === 1 ? "respuesta" : "respuestas";
+  $("revelar").hidden = ronda === 0;
+  $("revelar").lastElementChild.textContent = revelado ? "Ocultar resultados" : "Mostrar resultados";
+  $("revelar").firstElementChild.innerHTML = ICONOS[revelado ? "eye-off" : "eye"];
+  if (ronda === 0) return vistaEspera();
+  if (!revelado) return vistaOculta(n, ronda === 1 ? "respuestas recibidas" : "órdenes recibidos");
+  return ronda === 1 ? vistaRazones() : vistaFactores();
+}
+
+escuchar(nuevo => {
+  real = nuevo;
+  if (ejemplo) return;
+  const rondaNueva = Number(nuevo.ronda) || 0;
+  if (rondaNueva !== ronda) revelado = false;
+  d = real; ronda = rondaNueva;
+  pintar();
+}, () => { $("cuerpo").innerHTML = `<div class="oculto-msg"><p>Se perdió la conexión con la base de datos. Recargue la página.</p></div>`; });
+
+// ------------------------------------------------------------ controles
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", async () => {
+  const r = Number(b.dataset.r);
+  if (ejemplo) { ejemplo = false; d = real; ronda = Number(real.ronda) || 0; revelado = false; pintar(); }
+  try { await fijarRonda(r); } catch (e) { console.error(e); alert("No se pudo cambiar la actividad. Revise la conexión."); }
+}));
+$("revelar").addEventListener("click", () => { revelado = !revelado; pintar(); });
+$("pantalla").addEventListener("click", () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+});
+$("ejemplo").addEventListener("click", () => {
+  ejemplo = true; d = EJEMPLO; ronda = ronda || 1; revelado = true; pintar();
+});
+$("reset").addEventListener("click", async () => {
+  if (prompt("Clave del tablero:") !== CLAVE_PANEL) return;
+  try { ejemplo = false; revelado = false; await reiniciar(Number(d.rev) || 0); } catch (e) { console.error(e); alert("No se pudo reiniciar."); }
+});
+</script>
+</body>
+</html>

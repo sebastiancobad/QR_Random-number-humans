@@ -161,7 +161,7 @@ function tablaJunta(R, mercado, votos) {
     <tbody>${R.proyectos.map(p => `<tr><td><b>${p.id}</b> · ${esc(p.nombre)}</td><td class="num">${fmt(p.capex, 2)}</td><td class="num">${fmt(p.pbp, 2)}</td>
       ${R.escenarios.map(e => { const x = R.vpn[e.id][p.id]; return `<td class="num ${x < 0 ? "neg" : ""}" style="${mercado === e.id ? "background:#DCE6F0;font-weight:700" : ""}">${fmt(x, 2)}</td>`; }).join("")}
       ${mercado === null ? "" : `<td class="num">${fmt(R.ev[p.id], 2)}</td>`}${votos ? `<td class="num votos">${votos[p.id] || 0}</td>` : ""}</tr>`).join("")}</tbody></table>
-    <p class="cifra-et">CAPEX y VPN en M USD. Precio de la flema en USD/kg de etanol con su probabilidad.</p>`;
+    <p class="cifra-et">CAPEX y VPN en M USD. Precio de la acetona recuperada en USD/kg con su probabilidad.</p>`;
 }
 
 // --------------------------------------------------------------- gráficos de la revelación
@@ -233,7 +233,7 @@ function pintarRevelada(R) {
     fig = svgValores(R.opciones.map((o, k) => `${"ABCD"[k]}. ${o.txt}`), R.opciones.map(o => R.valores[o.id]), R.unidadValores, R.decValores, i, R.opciones.map(o => resp.filter(x => x.v === o.id).length));
   } else if (R.tipo === "junta") {
     const e = R.escenarios.find(x => x.id === estado.mercado);
-    respuesta = `<div class="mercado" id="mercado">${R.escenarios.map(x => `<div class="mcarta ${estado.mercado ? (x.id === estado.mercado ? "sale" : "apaga") : ""}" data-id="${x.id}"><div class="pf">${fmt(x.pf, 2)}</div><div>USD/kg de etanol</div><div class="pr">probabilidad ${Math.round(x.prob * 100)} %</div></div>`).join("")}</div>
+    respuesta = `<div class="mercado" id="mercado">${R.escenarios.map(x => `<div class="mcarta ${estado.mercado ? (x.id === estado.mercado ? "sale" : "apaga") : ""}" data-id="${x.id}"><div class="pf">${fmt(x.pf, 2)}</div><div>USD/kg de acetona</div><div class="pr">probabilidad ${Math.round(x.prob * 100)} %</div></div>`).join("")}</div>
       ${e ? `<p class="expl-tab"><b>${esc(e.txt)}.</b></p>` : ""}`;
     const votos = {}; resp.forEach(x => { votos[x.v] = (votos[x.v] || 0) + 1; });
     fig = tablaJunta(R, estado.mercado || "", votos);
@@ -311,8 +311,8 @@ $("reiniciar").addEventListener("click", async () => {
 
 $("simular").addEventListener("click", async () => {
   const nombres = ["Laura Gómez", "Andrés Rojas", "Camila Díaz", "Santiago Pérez", "Valentina Ruiz", "Mateo Herrera"];
-  const ejemplo = { 1: [43763, 37000, 43760, 9600000, 44000, 4.4], 2: [2910, 2900, 2930, 1700, 2910, 30000],
-    3: [41013, 41000, 23400, 41010, 40500, 31000], 4: [1.819, 1.82, 2.4, 1.6, 1.819, 1.44], 5: ["material", "volumen", "material", "presion", "material", "platos"],
+  const ejemplo = { 1: [92480, 94000, 3800000, 92500, 11.6, 90000], 2: [10255, 10300, 9000, 10250, 20600, 4300],
+    3: [11821, 11800, 6850, 11820, 11500, 9000], 4: [0.834, 0.83, 1.1, 0.7, 0.834, 0.66], 5: ["material", "volumen", "material", "presion", "material", "platos"],
     6: ["vapor", "mosto", "vapor", "mosto", "fijos", "mosto"], 7: ["C", "D", "A", "C", "B", "D"] };
   let gs = grupos();
   if (gs.length < 3) { for (const n of nombres) await registrar("g" + nuevoId(), n); gs = grupos(); }

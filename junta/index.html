@@ -21,7 +21,7 @@
   </header>
 
   <section id="vUnirse" hidden>
-    <h1>Columna de mosto</h1>
+    <h1>Recuperación de acetona</h1>
     <p>El primer puesto gana la nota.</p>
     <div class="campo">
       <label for="nombre">Nombre y apellido</label>
@@ -208,7 +208,7 @@ function campoRonda(R, previa) {
     t.innerHTML = `<thead><tr><th>VPN, M USD</th>${R.escenarios.map(e => `<th>${fmt(e.pf, 2)} USD/kg<br>${Math.round(e.prob * 100)} %</th>`).join("")}</tr></thead>
       <tbody>${R.proyectos.map(p => `<tr><td>${p.id}</td>${R.escenarios.map(e => { const x = R.vpn[e.id][p.id]; return `<td class="num ${x < 0 ? "neg" : ""}">${fmt(x, 2)}</td>`; }).join("")}</tr>`).join("")}</tbody>`;
     const nota = document.createElement("p"); nota.className = "expl";
-    nota.textContent = "VPN en M USD según el precio de la flema y su probabilidad.";
+    nota.textContent = "VPN en M USD según el precio de la acetona recuperada y su probabilidad.";
     const caja = document.createElement("div"); caja.className = "opcs";
     R.proyectos.forEach(p => {
       const b = document.createElement("button"); b.type = "button"; b.className = "opc proy"; b.dataset.id = p.id;
@@ -235,7 +235,7 @@ function textoCorrecta(R, mercado) {
   if (R.tipo === "estimar" || R.tipo === "calcular") return `${fmt(R.correcta, R.dec)} ${R.unidad}`;
   if (R.tipo === "ordenar") return R.correcta.join(", ");
   if (R.tipo === "opcion") return R.opciones.find(x => x.id === R.correcta).txt;
-  if (R.tipo === "junta") { const e = R.escenarios.find(x => x.id === mercado); return e ? `Mercado de ${fmt(e.pf, 2)} USD/kg de etanol` : "Pendiente del sorteo"; }
+  if (R.tipo === "junta") { const e = R.escenarios.find(x => x.id === mercado); return e ? `Mercado de ${fmt(e.pf, 2)} USD/kg de acetona` : "Pendiente del sorteo"; }
   return "";
 }
 
@@ -326,7 +326,7 @@ function pintar() {
   $("vPts").textContent = pend ? "Pendiente" : fmt(pts || 0);
   $("vPts").className = pend ? "num" : "grande " + (pts >= 70 ? "ok" : pts === 0 ? "mal" : "");
   $("vTot").textContent = `${fmt(m.total)} puntos, puesto ${m.puesto} de ${m.n}`;
-  $("vExp").innerHTML = pend ? "El tablero sortea el precio de la flema." : cadenaHTML(R) + `<p>${R.explicacion}</p>`;
+  $("vExp").innerHTML = pend ? "El tablero sortea el precio de la acetona recuperada." : cadenaHTML(R) + `<p>${R.explicacion}</p>`;
 }
 
 pintarIconos();

@@ -1,113 +1,100 @@
 // Cifras generadas desde caso.py y gen_rondas.py. No se editan a mano.
 export const DATOS = {
- "r1": 13335,
- "cp01": 2910,
- "r2": {
-  "orden": [
-   "E-102",
-   "T-101",
-   "E-101",
-   "E-103"
-  ],
-  "cbm": {
-   "E-102": 0.715,
-   "T-101": 0.424,
-   "E-101": 0.248,
-   "E-103": 0.183
-  }
- },
- "r3": 41013,
- "r4": 1.819,
+ "r1": 92480,
+ "r2": 10255,
+ "r3": 11821,
+ "r4": 0.834,
  "r5": {
-  "material": 0.157,
-  "volumen": 0.118,
-  "presion": 0.017,
-  "platos": 0.056
+  "material": 0.111,
+  "volumen": 0.051,
+  "presion": 0.011,
+  "platos": 0.018
  },
- "r5cs": 0.267,
+ "r5shell": 0.084,
  "r6": {
-  "mosto": 94.4,
-  "vapor": 3.8,
-  "fijos": 1.6,
-  "agua": 0.2,
+  "mosto": 97.46,
+  "vapor": 1.47,
+  "fijos": 1.02,
+  "agua": 0.05,
   "elec": 0.0
  },
  "esc": [
   {
    "id": "bajo",
-   "pf": 0.66,
+   "pf": 0.74,
    "prob": 0.3,
-   "txt": "La flema baja a 0.66 USD/kg de etanol y el mercado absorbe solo 2 t/h de etanol"
+   "txt": "La acetona recuperada baja a 0.74 USD/kg y el mercado compra solo 703 kg/h"
   },
   {
    "id": "base",
-   "pf": 0.75,
+   "pf": 0.8,
    "prob": 0.5,
-   "txt": "La flema se mantiene en 0.75 USD/kg de etanol"
+   "txt": "La acetona recuperada se mantiene en 0.80 USD/kg"
   },
   {
    "id": "alto",
-   "pf": 0.8,
+   "pf": 0.86,
    "prob": 0.2,
-   "txt": "La flema sube a 0.80 USD/kg de etanol"
+   "txt": "La acetona recuperada sube a 0.86 USD/kg"
   }
  ],
  "vpn": {
   "bajo": {
-   "A": -1.29,
-   "B": 0.64,
-   "C": -3.4,
-   "D": -0.64
+   "A": -0.01,
+   "B": 0.32,
+   "C": -0.55,
+   "D": 0.31
   },
   "base": {
-   "A": 6.81,
-   "B": 0.64,
-   "C": 15.6,
-   "D": 7.45
+   "A": 1.9,
+   "B": 0.32,
+   "C": 4.3,
+   "D": 2.22
   },
   "alto": {
-   "A": 11.31,
-   "B": 0.64,
-   "C": 24.59,
-   "D": 11.95
+   "A": 3.8,
+   "B": 0.32,
+   "C": 8.11,
+   "D": 4.12
   }
  },
  "ev": {
-  "A": 5.28,
-  "B": 0.64,
-  "C": 11.7,
-  "D": 5.92
+  "A": 1.71,
+  "B": 0.32,
+  "C": 3.61,
+  "D": 2.03
  },
  "proy": [
   {
    "id": "A",
-   "nombre": "Columna de mosto de 2 t/h de etanol",
-   "capex": 3.19,
-   "fc": 1.77,
-   "pbp": 1.8
+   "nombre": "Columna de 6000 kg/h de agua de lavado",
+   "capex": 0.82,
+   "fc": 0.48,
+   "pbp": 1.7
   },
   {
    "id": "B",
-   "nombre": "Integración energética de la destilería actual",
-   "capex": 0.6,
-   "fc": 0.22,
+   "nombre": "Integración energética de la planta actual",
+   "capex": 0.3,
+   "fc": 0.11,
    "pbp": 2.73
   },
   {
    "id": "C",
-   "nombre": "Columna de mosto de 4 t/h de etanol",
-   "capex": 4.84,
-   "fc": 3.62,
-   "pbp": 1.34
+   "nombre": "Columna de 12 000 kg/h de agua de lavado",
+   "capex": 1.24,
+   "fc": 0.98,
+   "pbp": 1.26
   },
   {
    "id": "D",
    "nombre": "Proyectos A y B juntos",
-   "capex": 3.79,
-   "fc": 1.99,
-   "pbp": 1.91
+   "capex": 1.12,
+   "fc": 0.59,
+   "pbp": 1.89
   }
  ],
- "perdida": 48000,
- "r5shell": 0.166
+ "rec": 97.64,
+ "ace_fondos": 17.0,
+ "V_T": 8.62
 };

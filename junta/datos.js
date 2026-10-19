@@ -11,7 +11,7 @@
 //    }
 //  Cada grupo escribe solo dentro de g.<su id>, con setDoc y merge, así que dos
 //  celulares que respondan en el mismo instante no se pisan.
-//  No se guarda ningún dato personal: solo el nombre que el grupo escoge.
+//  Solo se guarda el nombre que escribe cada estudiante, sus respuestas y sus justificaciones.
 //  Con ?demo en la dirección todo corre en el navegador, sin red, y las
 //  pestañas del mismo equipo se sincronizan entre sí.
 // ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ function crearDemo() {
     fijar: cambio => escribir(d => Object.assign(d, cambio)),
     registrar: (gid, nombre) => escribir(d => { d.g[gid] = Object.assign(d.g[gid] || { r: {} }, { nombre }); }),
     responder: (gid, ronda, v, j) => escribir(d => {
-      d.g[gid] = d.g[gid] || { nombre: "Grupo", r: {} };
+      d.g[gid] = d.g[gid] || { nombre: "Participante", r: {} };
       d.g[gid].r = d.g[gid].r || {};
       d.g[gid].r[ronda] = { v, j: j || "", t: Date.now() };
     }),

@@ -1,16 +1,17 @@
 # Junta de inversión
 
 Actividad de la sesión de evaluación económica de Diseño de Plantas Químicas.
-Los grupos son firmas de ingeniería que asesoran a la junta de un ingenio sobre
+Es un concurso individual. Cada estudiante asesora a la junta de un ingenio sobre
 la columna de mosto de una destilería de etanol. En siete rondas estiman,
 calculan y deciden, y el tablero del salón muestra la clasificación en vivo.
+El primer puesto gana la nota del concurso.
 
 Celulares: https://sebastiancobad.github.io/QR_Random-number-humans/junta/
 
 Tablero: https://sebastiancobad.github.io/QR_Random-number-humans/junta/tablero.html
 
 Para ensayar sin red, agregue `?demo` a las dos direcciones. Con el tablero en modo de
-ensayo, el enlace "Simular respuestas de ejemplo" crea seis grupos y llena la
+ensayo, el enlace "Simular respuestas de ejemplo" crea seis participantes y llena la
 ronda abierta.
 
 ## Rondas
@@ -32,8 +33,7 @@ del escenario sorteado, redondeado y acotado entre 0 y 100 puntos.
 
 Usa el mismo proyecto de Firebase (`azar-tadeo`) y la colección `sesiones`,
 abierta por las reglas actuales. El documento de la sesión guarda solo el
-nombre que cada grupo escoge, sus respuestas y sus justificaciones. No guarda
-datos personales.
+nombre y apellido de cada estudiante, sus respuestas y sus justificaciones.
 
 La sesión por defecto es `junta-s14-2026-2s`. Para otra clase use `?s=nombre`
 en el tablero; el QR lleva la misma sesión a los celulares.
@@ -44,10 +44,10 @@ tablero de `assets/config.js`.
 
 ## El día de la clase
 
-1. Proyecte `tablero.html`. Los grupos escanean el QR y escriben su nombre.
+1. Proyecte `tablero.html`. Cada estudiante escanea el QR y escribe su nombre y apellido.
 2. "Abrir la ronda" publica la pregunta en los celulares.
 3. "Revelar la respuesta" muestra el valor correcto, la distribución de
    respuestas, la explicación y la clasificación.
 4. En la ronda 7, "Sortear el mercado" elige el precio de la flema con las
    probabilidades del enunciado y asigna los puntos.
-5. "Volver a abrir" reabre la ronda si algún grupo no alcanzó a responder.
+5. "Volver a abrir" reabre la ronda si algún estudiante no alcanzó a responder.

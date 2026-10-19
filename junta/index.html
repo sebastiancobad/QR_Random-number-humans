@@ -22,10 +22,10 @@
 
   <section id="vUnirse" hidden>
     <h1>Columna de mosto de una destilería del Valle del Cauca</h1>
-    <p>Su grupo asesora a la junta de un ingenio. Siete rondas, un celular por grupo.</p>
+    <p>Cada estudiante asesora a la junta de un ingenio en siete rondas desde su celular. El mejor puntaje gana la nota del concurso.</p>
     <div class="campo">
-      <label for="nombre">Nombre del grupo</label>
-      <input type="text" id="nombre" maxlength="24" autocomplete="off" placeholder="Por ejemplo, Ingeniería Andina">
+      <label for="nombre">Nombre y apellido</label>
+      <input type="text" id="nombre" maxlength="40" autocomplete="name" placeholder="Por ejemplo, Laura Gómez">
     </div>
     <button class="boton" id="entrar" type="button">Entrar a la junta</button>
   </section>
@@ -44,8 +44,8 @@
     <p class="pregunta" id="rPre"></p>
     <div id="rCampo"></div>
     <div class="campo" id="rJus" hidden>
-      <label for="jus">Justificación del grupo</label>
-      <textarea id="jus" maxlength="400" placeholder="Escriban la razón técnica de la elección"></textarea>
+      <label for="jus">Justificación</label>
+      <textarea id="jus" maxlength="400" placeholder="Escriba la razón técnica de la elección"></textarea>
       <div class="contador" id="jusCont"><div class="barra"><i></i></div><span id="jusFalta">Faltan 20 caracteres</span><span class="n" id="jusN">0</span></div>
     </div>
     <button class="boton apagado" id="enviar" type="button">Enviar respuesta</button>
@@ -56,7 +56,7 @@
     <div class="etq" id="vEtq"></div>
     <h1 id="vTit"></h1>
     <div class="res">
-      <div class="fila"><span>Respuesta del grupo</span><span class="num" id="vSuya"></span></div>
+      <div class="fila"><span>Su respuesta</span><span class="num" id="vSuya"></span></div>
       <div class="fila"><span id="vBuenaEt">Respuesta correcta</span><span class="num" id="vBuena"></span></div>
       <div class="fila"><span>Puntos de la ronda</span><span class="grande" id="vPts"></span></div>
       <div class="fila"><span>Acumulado y puesto</span><span class="num" id="vTot"></span></div>
@@ -99,15 +99,15 @@ const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase
 // --------------------------------------------------------------- unirse
 $("entrar").addEventListener("click", async () => {
   const nombre = $("nombre").value.trim().replace(/\s+/g, " ");
-  if (nombre.length < 2) { alerta("Escriban un nombre de grupo de al menos dos letras."); return; }
-  if (estado && Object.values(estado.g || {}).some(g => g.nombre && norm(g.nombre) === norm(nombre))) { alerta("Ese nombre ya está registrado. Escriban otro."); return; }
+  if (nombre.length < 2) { alerta("Escriba su nombre y apellido."); return; }
+  if (estado && Object.values(estado.g || {}).some(g => g.nombre && norm(g.nombre) === norm(nombre))) { alerta("Ese nombre ya está registrado. Escriba su nombre completo."); return; }
   const gid = "g" + nuevoId();
   try {
     await registrar(gid, nombre);
     yo = { gid, nombre, rev: estado ? estado.rev : 0 };
     localStorage.setItem(LLAVE, JSON.stringify(yo));
     alerta(""); pintar();
-  } catch (e) { console.error(e); alerta("No se pudo registrar el grupo. Toquen el botón otra vez."); }
+  } catch (e) { console.error(e); alerta("No se pudo hacer el registro. Toque el botón otra vez."); }
 });
 
 // --------------------------------------------------------------- justificación
@@ -162,7 +162,7 @@ $("enviar").addEventListener("click", async () => {
   try {
     await responder(yo.gid, estado.ronda, v, R.justificar ? $("jus").value.trim() : "");
     alerta("");
-  } catch (e) { console.error(e); alerta("No se pudo enviar. Revisen la conexión y toquen otra vez."); }
+  } catch (e) { console.error(e); alerta("No se pudo enviar. Revise la conexión y toque otra vez."); }
 });
 
 // --------------------------------------------------------------- campos por tipo
@@ -170,7 +170,7 @@ function campoRonda(R, previa) {
   const c = $("rCampo"); c.innerHTML = "";
   seleccion = null; orden = [];
   if (R.tipo === "estimar" || R.tipo === "calcular") {
-    c.innerHTML = `<div class="campo"><label for="valor">Respuesta del grupo</label>
+    c.innerHTML = `<div class="campo"><label for="valor">Su respuesta</label>
       <div class="entrada"><input id="valor" inputmode="decimal" autocomplete="off" placeholder="0"><span class="u">${R.unidad}</span></div>
       <div class="lectura" id="lectura"></div></div>`;
     if (previa) $("valor").value = previa.v;
@@ -263,7 +263,7 @@ function pintar() {
   pintarAvance();
   if (yo && yo.rev !== estado.rev) { yo = null; localStorage.removeItem(LLAVE); }
   if (yo && !(estado.g && estado.g[yo.gid])) { yo = null; localStorage.removeItem(LLAVE); }
-  $("miGrupo").innerHTML = yo ? `Grupo <b></b>` : "";
+  $("miGrupo").innerHTML = yo ? `<b></b>` : "";
   if (yo) $("miGrupo").querySelector("b").textContent = yo.nombre;
   if (!yo) { vista("vUnirse"); rondaPintada = -1; return; }
 
@@ -271,7 +271,7 @@ function pintar() {
   const gr = estado.g[yo.gid];
   if (r === 0) {
     vista("vEspera");
-    $("esperaTit").textContent = "Grupo registrado";
+    $("esperaTit").textContent = "Registro completo";
     $("esperaTxt").textContent = "Dejen esta página abierta.";
     return;
   }
@@ -279,7 +279,7 @@ function pintar() {
     const m = miPuesto();
     vista("vFinal");
     $("fTit").textContent = `Puesto ${m.puesto} de ${m.n}`;
-    $("fTxt").textContent = `El grupo terminó con ${fmt(m.total)} puntos. Miren el tablero del salón.`;
+    $("fTxt").textContent = `Terminó con ${fmt(m.total)} puntos. Mire el tablero del salón.`;
     return;
   }
   const R = RONDAS[r];
@@ -288,7 +288,7 @@ function pintar() {
     rondaPintada = -1;
     vista("vEspera");
     $("esperaTit").textContent = "Respuesta registrada";
-    $("esperaTxt").textContent = "La ronda sigue abierta para los grupos que faltan.";
+    $("esperaTxt").textContent = "La ronda sigue abierta para quienes faltan.";
     return;
   }
   if (estado.fase === "abierta") {

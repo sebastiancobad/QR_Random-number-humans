@@ -67,7 +67,7 @@ const grupos = () => Object.entries(estado.g || {}).filter(([, g]) => g && g.nom
 
 function qr(canvas, ancho) {
   QRCode.toCanvas(canvas, urlCel, { width: ancho, margin: 1, errorCorrectionLevel: "M", color: { dark: "#0B3D6B", light: "#FFFFFF" } },
-    err => { if (err) { console.error(err); canvas.replaceWith(Object.assign(document.createElement("p"), { textContent: "El código QR no se pudo dibujar. Los grupos pueden escribir la dirección que aparece debajo." })); } });
+    err => { if (err) { console.error(err); canvas.replaceWith(Object.assign(document.createElement("p"), { textContent: "El código QR no se pudo dibujar. Los estudiantes pueden escribir la dirección que aparece debajo." })); } });
 }
 
 // --------------------------------------------------------------- cabecera
@@ -109,8 +109,8 @@ function pintarSala() {
     <div class="qr-caja"><canvas id="qrG" width="560" height="560"></canvas><a class="url" id="url"></a></div>
     <div>
       <h2>Columna de mosto de una destilería del Valle del Cauca</h2>
-      <p class="lead">Cada grupo es una firma de ingeniería que asesora a la junta del ingenio. Escaneen el código, escriban el nombre del grupo y esperen la primera ronda.</p>
-      <div style="display:flex;gap:28px;align-items:end;margin-top:22px"><div><div class="cifra" id="nG">0</div><div class="cifra-et">grupos registrados</div></div></div>
+      <p class="lead">Cada estudiante asesora a la junta del ingenio en un concurso individual. Escaneen el código, escriban su nombre y apellido y esperen la primera ronda. El primer puesto gana la nota del concurso.</p>
+      <div style="display:flex;gap:28px;align-items:end;margin-top:22px"><div><div class="cifra" id="nG">0</div><div class="cifra-et">estudiantes registrados</div></div></div>
       <div class="grupos" id="lista"></div>
     </div></div>`;
   $("url").textContent = urlCel.replace(/^https?:\/\//, ""); $("url").href = urlCel;
@@ -120,8 +120,8 @@ function pintarSala() {
 function pintarListaSala() {
   const l = $("lista"); if (!l) return;
   $("nG").textContent = grupos().length;
-  l.innerHTML = grupos().map(([id, g]) => `<span class="grupo">${esc(g.nombre)}<button class="x" data-id="${id}" title="Quitar grupo" type="button">×</button></span>`).join("");
-  l.querySelectorAll(".x").forEach(b => b.addEventListener("click", () => { if (confirm("¿Quitar este grupo de la junta?")) quitarGrupo(b.dataset.id); }));
+  l.innerHTML = grupos().map(([id, g]) => `<span class="grupo">${esc(g.nombre)}<button class="x" data-id="${id}" title="Quitar participante" type="button">×</button></span>`).join("");
+  l.querySelectorAll(".x").forEach(b => b.addEventListener("click", () => { if (confirm("¿Quitar este participante de la junta?")) quitarGrupo(b.dataset.id); }));
 }
 
 // --------------------------------------------------------------- ronda abierta
@@ -141,7 +141,7 @@ function pintarAbierta(R) {
       ${extra}
     </div>
     <div class="lado">
-      <div class="tarjeta"><div class="cifra" id="nResp">0</div><div class="cifra-et" id="nTxt">grupos respondieron</div></div>
+      <div class="tarjeta"><div class="cifra" id="nResp">0</div><div class="cifra-et" id="nTxt">respondieron</div></div>
       <div class="grupos" id="lista"></div>
       <div class="qr-caja"><canvas id="qrP" width="360" height="360"></canvas></div>
     </div></div>`;
@@ -151,14 +151,14 @@ function pintarAbierta(R) {
 function pintarListaRonda(R) {
   const l = $("lista"); if (!l) return;
   const gs = grupos(); const resp = gs.filter(([, g]) => g.r && g.r[R.n]);
-  $("nResp").textContent = resp.length; $("nTxt").textContent = `de ${gs.length} grupos respondieron`;
-  l.innerHTML = gs.map(([id, g]) => `<span class="grupo ${g.r && g.r[R.n] ? "listo" : ""}">${esc(g.nombre)}<button class="x" data-id="${id}" title="Quitar grupo" type="button">×</button></span>`).join("");
-  l.querySelectorAll(".x").forEach(b => b.addEventListener("click", () => { if (confirm("¿Quitar este grupo de la junta?")) quitarGrupo(b.dataset.id); }));
+  $("nResp").textContent = resp.length; $("nTxt").textContent = `de ${gs.length} respondieron`;
+  l.innerHTML = gs.map(([id, g]) => `<span class="grupo ${g.r && g.r[R.n] ? "listo" : ""}">${esc(g.nombre)}<button class="x" data-id="${id}" title="Quitar participante" type="button">×</button></span>`).join("");
+  l.querySelectorAll(".x").forEach(b => b.addEventListener("click", () => { if (confirm("¿Quitar este participante de la junta?")) quitarGrupo(b.dataset.id); }));
 }
 
 function tablaJunta(R, mercado, votos) {
   return `<table class="escen" style="font-size:1.15rem">
-    <thead><tr><th>Alternativa</th><th>CAPEX</th><th>PBP, años</th>${R.escenarios.map(e => `<th>VPN <span class="p">${fmt(e.pf, 2)} (${Math.round(e.prob * 100)} %)</span></th>`).join("")}${mercado === null ? "" : "<th>VPN esperado</th>"}${votos ? "<th>Grupos</th>" : ""}</tr></thead>
+    <thead><tr><th>Alternativa</th><th>CAPEX</th><th>PBP, años</th>${R.escenarios.map(e => `<th>VPN <span class="p">${fmt(e.pf, 2)} (${Math.round(e.prob * 100)} %)</span></th>`).join("")}${mercado === null ? "" : "<th>VPN esperado</th>"}${votos ? "<th>Votos</th>" : ""}</tr></thead>
     <tbody>${R.proyectos.map(p => `<tr><td><b>${p.id}</b> · ${esc(p.nombre)}</td><td class="num">${fmt(p.capex, 2)}</td><td class="num">${fmt(p.pbp, 2)}</td>
       ${R.escenarios.map(e => { const x = R.vpn[e.id][p.id]; return `<td class="num ${x < 0 ? "neg" : ""}" style="${mercado === e.id ? "background:#DCE6F0;font-weight:700" : ""}">${fmt(x, 2)}</td>`; }).join("")}
       ${mercado === null ? "" : `<td class="num">${fmt(R.ev[p.id], 2)}</td>`}${votos ? `<td class="num votos">${votos[p.id] || 0}</td>` : ""}</tr>`).join("")}</tbody></table>
@@ -181,7 +181,7 @@ function svgPuntos(R, vals) {
   ticks = ticks.filter(t => t >= lo * 0.999 && t <= hi * 1.001);
   const bins = {}; vals.forEach(v => { const k = Math.round(X(v.v) / 26); (bins[k] = bins[k] || []).push(v); });
   const pts = Object.values(bins).map(g => ({ cx: g.reduce((a, v) => a + X(v.v), 0) / g.length, n: g.length, nombres: g.map(v => v.nombre).join(", ") }));
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Respuestas de los grupos frente al valor correcto">
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Respuestas frente al valor correcto">
     <line x1="${m}" x2="${W - m}" y1="120" y2="120" stroke="#5D6878" stroke-width="1.5"/>
     ${ticks.map(t => `<line x1="${X(t)}" x2="${X(t)}" y1="120" y2="126" stroke="#5D6878"/><text x="${X(t)}" y="145" font-size="15" text-anchor="middle" fill="#5D6878" font-family="IBM Plex Mono, Consolas, monospace">${fmt(t, R.dec && !log ? R.dec : 0)}</text>`).join("")}
     <line x1="${X(R.correcta)}" x2="${X(R.correcta)}" y1="14" y2="120" stroke="#13795B" stroke-width="3"/>
@@ -207,13 +207,13 @@ function svgValores(etiquetas, vals, unidad, dec, ok, votos) {
       return `<text x="${x0 - 14}" y="${i * fila + 36}" font-size="20" text-anchor="end" fill="#13233A" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-weight="${bien ? 700 : 400}">${esc(e)}</text>
       <rect x="${x0}" y="${i * fila + 12}" width="${Math.max(w, 3)}" height="36" rx="5" fill="${bien ? "#13795B" : "#9AA6B4"}"/>
       <text x="${x0 + Math.max(w, 3) + 12}" y="${i * fila + 37}" font-size="19" fill="#13233A" font-family="IBM Plex Mono, Consolas, monospace" font-weight="600">${fmt(vals[i], dec)} ${unidad}</text>
-      ${votos ? `<text x="${W - 6}" y="${i * fila + 37}" font-size="16" text-anchor="end" fill="#5D6878" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">${votos[i]} ${votos[i] === 1 ? "grupo" : "grupos"}</text>` : ""}`; }).join("")}</svg>`;
+      ${votos ? `<text x="${W - 6}" y="${i * fila + 37}" font-size="16" text-anchor="end" fill="#5D6878" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">${votos[i]} ${votos[i] === 1 ? "voto" : "votos"}</text>` : ""}`; }).join("")}</svg>`;
 }
 
 function posiciones(hasta, marcarRonda) {
   const t = tabla(estado, hasta);
-  if (!t.length) return "<p class='cifra-et'>Todavía no hay grupos.</p>";
-  return `<table class="posiciones"><thead><tr><th>#</th><th>Grupo</th>${marcarRonda ? "<th>Ronda</th>" : ""}<th>Total</th></tr></thead><tbody>
+  if (!t.length) return "<p class='cifra-et'>Todavía no hay participantes.</p>";
+  return `<table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${marcarRonda ? "<th>Ronda</th>" : ""}<th>Total</th></tr></thead><tbody>
     ${t.slice(0, 10).map((f, i) => `<tr class="${i === 0 ? "top1" : ""}"><td class="num">${i + 1}</td><td>${esc(f.nombre)}</td>${marcarRonda ? `<td class="num">${f.pts[marcarRonda] === null ? "" : fmt(f.pts[marcarRonda])}</td>` : ""}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table>`;
 }
 
@@ -226,7 +226,7 @@ function pintarRevelada(R) {
     fig = (resp.length ? svgPuntos(R, resp.map(x => ({ v: Number(x.v), nombre: x.nombre }))) : "") + cadenaHTML(R);
   } else if (R.tipo === "ordenar") {
     const exactos = resp.filter(x => x.v === R.correcta.join(",")).length;
-    respuesta = `<p class="cifra-et">${exactos} de ${resp.length} grupos acertaron el orden completo</p>`;
+    respuesta = `<p class="cifra-et">${exactos} de ${resp.length} acertaron el orden completo</p>`;
     fig = svgValores(R.correcta.map((id, k) => `${k + 1}. ${R.items.find(x => x.id === id).nombre}`), R.correcta.map(id => R.cbm[id]), "M USD", 3, 0, null);
   } else if (R.tipo === "opcion") {
     const i = R.opciones.findIndex(o => o.id === R.correcta);
@@ -271,12 +271,19 @@ async function sortear() {
 }
 
 // --------------------------------------------------------------- final
+function ganadores(t) {
+  if (!t.length) return "";
+  const g = t.filter(f => f.total === t[0].total).map(f => esc(f.nombre));
+  return g.length === 1 ? `${g[0]} gana la nota del concurso con ${fmt(t[0].total)} puntos.`
+    : `${g.slice(0, -1).join(", ")} y ${g[g.length - 1]} empatan en el primer puesto con ${fmt(t[0].total)} puntos.`;
+}
 function pintarFinal() {
   const t = tabla(estado, N_RONDAS);
   const podio = [t[1], t[0], t[2]];
   cuerpo.innerHTML = `<h2 style="font-family:var(--display);font-size:3rem;margin:0">Resultado de la junta</h2>
+    <p class="lead">${ganadores(t)}</p>
     <div class="podio">${podio.map((f, i) => f ? `<div class="esc e${[2, 1, 3][i]}"><div class="pos">${[2, 1, 3][i]}</div><div class="nom">${esc(f.nombre)}</div><div class="pts">${fmt(f.total)} puntos</div></div>` : "<div></div>").join("")}</div>
-    <div class="tarjeta"><table class="posiciones"><thead><tr><th>#</th><th>Grupo</th>${[1, 2, 3, 4, 5, 6, 7].map(n => `<th>${RONDAS[n].corto}</th>`).join("")}<th>Total</th></tr></thead><tbody>
+    <div class="tarjeta"><table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${[1, 2, 3, 4, 5, 6, 7].map(n => `<th>${RONDAS[n].corto}</th>`).join("")}<th>Total</th></tr></thead><tbody>
     ${t.map((f, i) => `<tr class="${i === 0 ? "top1" : ""}"><td class="num">${i + 1}</td><td>${esc(f.nombre)}</td>${[1, 2, 3, 4, 5, 6, 7].map(n => `<td class="num">${f.pts[n] === null ? "" : fmt(f.pts[n])}</td>`).join("")}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
@@ -304,7 +311,7 @@ $("reiniciar").addEventListener("click", async () => {
 });
 
 $("simular").addEventListener("click", async () => {
-  const nombres = ["Ingeniería Andina", "Procesos del Pacífico", "Destila SAS", "Grupo Mamonal", "Termo Valle", "Columna Uno"];
+  const nombres = ["Laura Gómez", "Andrés Rojas", "Camila Díaz", "Santiago Pérez", "Valentina Ruiz", "Mateo Herrera"];
   const ejemplo = { 1: [9000, 25000, 4000, 15000, 120000, 13000], 2: ["E-102,T-101,E-101,E-103", "T-101,E-102,E-101,E-103", "T-101,E-101,E-102,E-103", "E-102,T-101,E-101,E-103", "T-101,E-101,E-103,E-102", "E-101,T-101,E-102,E-103"],
     3: [41013, 41000, 23400, 41010, 40500, 31000], 4: [1.819, 1.82, 2.4, 1.6, 1.819, 1.44], 5: ["material", "volumen", "material", "presion", "material", "platos"],
     6: ["vapor", "mosto", "vapor", "mosto", "fijos", "mosto"], 7: ["C", "D", "A", "C", "B", "D"] };
@@ -325,15 +332,15 @@ $("exportar").addEventListener("click", async () => {
     if (!window.XLSX) return;
   }
   const t = tabla(estado, rondaContable(estado));
-  const resumen = [["Puesto", "Grupo", ...[1, 2, 3, 4, 5, 6, 7].map(n => `Ronda ${n} · ${RONDAS[n].corto}`), "Total"],
+  const resumen = [["Puesto", "Participante", ...[1, 2, 3, 4, 5, 6, 7].map(n => `Ronda ${n} · ${RONDAS[n].corto}`), "Total"],
     ...t.map((f, i) => [i + 1, f.nombre, ...[1, 2, 3, 4, 5, 6, 7].map(n => f.pts[n] ?? ""), f.total])];
   const legible = (n, v) => { const R = RONDAS[n];
     if (R.tipo === "opcion") { const o = R.opciones.find(z => z.id === v); return o ? o.txt : v; }
     if (R.tipo === "junta") { const p = R.proyectos.find(z => z.id === v); return p ? `${p.id} · ${p.nombre}` : v; }
     if (R.tipo === "ordenar") return String(v).split(",").join(", ");
     return Number(v); };
-  const resp = [["Id del grupo", "Grupo", "Ronda", "Respuesta", "Puntos", "Hora"]];
-  const just = [["Id del grupo", "Grupo", "Ronda", "Justificación"]];
+  const resp = [["Id", "Participante", "Ronda", "Respuesta", "Puntos", "Hora"]];
+  const just = [["Id", "Participante", "Ronda", "Justificación"]];
   for (const [id, g] of grupos()) for (let n = 1; n <= N_RONDAS; n++) {
     const x = g.r && g.r[n]; if (!x) continue;
     resp.push([id, g.nombre, n, legible(n, x.v), puntaje(n, x.v, estado.mercado) ?? "", new Date(x.t)]);

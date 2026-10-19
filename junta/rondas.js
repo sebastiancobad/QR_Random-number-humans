@@ -19,7 +19,7 @@ export const fmt = (x, dec = 0) => {
 // Tipos de ronda
 //   estimar  número libre, puntaje por error logarítmico
 //   calcular número con fórmula dada, puntaje por error relativo
-//   ordenar  lista que el grupo ordena tocando
+//   ordenar  lista que el estudiante ordena tocando
 //   opcion   selección única
 //   junta    decisión de inversión con sorteo de mercado
 export const RONDAS = [
@@ -37,7 +37,7 @@ export const RONDAS = [
     n: 2, tipo: "ordenar", corto: "Orden", icono: "arrow-down-up",
     titulo: "¿Qué equipo cuesta más instalado?",
     datos: [["layers", "Inoxidable", "material"], ["coins", "C_BM", "módulo desnudo"]],
-    pregunta: "Toquen del más caro al más barato",
+    pregunta: "Toque del más caro al más barato",
     items: [
       { id: "E-101", nombre: `E${NH}101 intercambiador`, det: "48.7 m²" },
       { id: "T-101", nombre: `T${NH}101 columna`, det: "1.3 m × 17.4 m, 24 platos" },
@@ -71,7 +71,7 @@ export const RONDAS = [
     n: 5, tipo: "opcion", corto: "Material", icono: "flame", justificar: true,
     titulo: "¿Qué encarece más la columna?",
     datos: [["coins", `${fmt(D.r5cs, 3)}${NB}M${NB}USD`, "columna de acero al carbono"], ["gauge", `1${NB}barg`, "presión de diseño"]],
-    pregunta: "Elijan un cambio y justifiquen",
+    pregunta: "Elija un cambio y justifique",
     opciones: [
       { id: "material", txt: "Acero inoxidable" },
       { id: "volumen", txt: "Doble de volumen" },
@@ -86,7 +86,7 @@ export const RONDAS = [
     n: 6, tipo: "opcion", corto: "OPEX", icono: "droplets",
     titulo: "¿Qué pesa más en el costo de operación?",
     datos: [["droplets", `16${NB}000${NB}t/año`, "etanol en el mosto"], ["flame", `5.13${NB}t/h`, "vapor"], ["coins", "5 %", "costos fijos del CAPEX"]],
-    pregunta: "Elijan el rubro mayor del OPEX",
+    pregunta: "Elija el rubro mayor del OPEX",
     opciones: [
       { id: "mosto", txt: "Mosto" },
       { id: "vapor", txt: "Vapor" },
@@ -102,7 +102,7 @@ export const RONDAS = [
     titulo: "La junta decide",
     datos: [["wallet", `6${NB}M${NB}USD`, "presupuesto"], ["chart-column", "12 %", "tasa a 10 años"], ["factory", `4${NB}t/h`, "capacidad de la rectificadora"]],
     nota: "El ingenio tiene mosto para la columna grande. En el escenario bajo el mercado compra solo 2 t/h de etanol.",
-    pregunta: "Elijan una alternativa y justifiquen con el VPN y el riesgo",
+    pregunta: "Elija una alternativa y justifique con el VPN y el riesgo",
     proyectos: D.proy, escenarios: D.esc, vpn: D.vpn, ev: D.ev,
     explicacion: `La columna de 4 t/h tiene el VPN esperado más alto, ${fmt(D.ev.C, 2)}${NB}M${NB}USD, y en el escenario bajo pierde ${fmt(-D.vpn.bajo.C, 2)}${NB}M${NB}USD.`,
   },
@@ -145,7 +145,7 @@ export function puntaje(n, v, mercado) {
   return 0;
 }
 
-// Tabla de puntajes de todos los grupos hasta la ronda indicada (solo rondas reveladas cuentan).
+// Tabla de puntajes de todos los participantes hasta la ronda indicada (solo rondas reveladas cuentan).
 export function tabla(estado, hasta) {
   const filas = Object.entries(estado.g || {}).filter(([, gr]) => gr && gr.nombre).map(([id, gr]) => {
     const pts = []; let total = 0;
@@ -154,7 +154,7 @@ export function tabla(estado, hasta) {
       const p = n <= hasta && resp ? puntaje(n, resp.v, estado.mercado) : null;
       pts[n] = p; total += p || 0;
     }
-    return { id, nombre: gr.nombre || "Grupo", pts, total };
+    return { id, nombre: gr.nombre || "Participante", pts, total };
   });
   filas.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre, "es", { numeric: true }));
   return filas;

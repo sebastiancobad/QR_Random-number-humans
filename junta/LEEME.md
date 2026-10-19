@@ -16,10 +16,13 @@ ronda abierta.
 
 ## Rondas
 
+Cada ronda se abre en el punto del deck que indica su lámina "Ronda N", después
+de la teoría que necesita. El celular muestra los datos y la fórmula.
+
 | Ronda | Tipo | Contenido |
 |---|---|---|
-| 1 | Estimación | Costo de compra de la bomba P-101, puntaje por error logarítmico |
-| 2 | Orden | Cuatro equipos por costo de módulo desnudo |
+| 1 | Cálculo | Balance de etanol del PFD y costo anual del etanol que se pierde en la vinaza |
+| 2 | Cálculo | Costo base de la bomba P-101 con la correlación de Turton |
 | 3 | Cálculo | Actualización de una cotización de 2018 con el CEPCI |
 | 4 | Cálculo | Regla de los seis décimos |
 | 5 | Selección y justificación | Cambio que más encarece la columna |

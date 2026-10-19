@@ -21,8 +21,8 @@
   </header>
 
   <section id="vUnirse" hidden>
-    <h1>Columna de mosto de una destilería del Valle del Cauca</h1>
-    <p>Cada estudiante asesora a la junta de un ingenio en siete rondas desde su celular. El mejor puntaje gana la nota del concurso.</p>
+    <h1>Columna de mosto</h1>
+    <p>El primer puesto gana la nota.</p>
     <div class="campo">
       <label for="nombre">Nombre y apellido</label>
       <input type="text" id="nombre" maxlength="40" autocomplete="name" placeholder="Por ejemplo, Laura Gómez">
@@ -33,7 +33,7 @@
   <section id="vEspera" class="aviso" hidden>
     <span class="ico" data-ico="clock"></span>
     <h2 id="esperaTit">La junta empieza en un momento</h2>
-    <p id="esperaTxt">Dejen esta página abierta. Cambia sola cuando el profesor abra la ronda.</p>
+    <p id="esperaTxt">La pantalla cambia sola cuando abra la ronda.</p>
   </section>
 
   <section id="vRonda" hidden>
@@ -272,7 +272,7 @@ function pintar() {
   if (r === 0) {
     vista("vEspera");
     $("esperaTit").textContent = "Registro completo";
-    $("esperaTxt").textContent = "Dejen esta página abierta.";
+    $("esperaTxt").textContent = "Deje la página abierta.";
     return;
   }
   if (r >= 8) {

@@ -107,5 +107,7 @@ export const DATOS = {
    "fc": 1.99,
    "pbp": 1.91
   }
- ]
+ ],
+ "perdida": 43763,
+ "etoh_vinaza": 9.12
 };

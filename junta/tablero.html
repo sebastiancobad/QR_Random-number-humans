@@ -14,7 +14,7 @@
   <header class="tab-cabeza">
     <div>
       <div class="t">Junta de inversión</div>
-      <div class="s">Diseño de Plantas Químicas · sesión <span id="ses"></span></div>
+      <div class="s">Diseño de Plantas Químicas</div>
     </div>
     <div class="rondas">
       <div class="avance" id="avance"></div>
@@ -49,8 +49,7 @@ try { datos = await import("./datos.js"); }
 catch (e) { console.error(e); cuerpo.innerHTML = `<div class="alerta">No se pudo conectar con Firebase. Abra el tablero con ?demo para ensayar sin red.</div>`; throw e; }
 const { escuchar, fijar, registrar, responder, quitarGrupo, reiniciar, sesion, SESION_POR_DEFECTO, CLAVE_PANEL, modoDemo, nuevoId } = datos;
 
-$("ses").textContent = sesion;
-$("modo").textContent = modoDemo ? "Modo de ensayo sin red." : "Conectado a Firebase.";
+$("modo").textContent = modoDemo ? "Ensayo" : "";
 $("simular").hidden = !modoDemo;
 
 const base = location.href.replace(/[?#].*$/, "").replace(/tablero(\.html)?$/, "");
@@ -108,8 +107,8 @@ function pintarSala() {
   cuerpo.innerHTML = `<div class="sala">
     <div class="qr-caja"><canvas id="qrG" width="560" height="560"></canvas><a class="url" id="url"></a></div>
     <div>
-      <h2>Columna de mosto de una destilería del Valle del Cauca</h2>
-      <p class="lead">Cada estudiante asesora a la junta del ingenio en un concurso individual. Escaneen el código, escriban su nombre y apellido y esperen la primera ronda. El primer puesto gana la nota del concurso.</p>
+      <h2>Escaneen el código y escriban su nombre</h2>
+      <p class="lead">El primer puesto gana la nota.</p>
       <div style="display:flex;gap:28px;align-items:end;margin-top:22px"><div><div class="cifra" id="nG">0</div><div class="cifra-et">estudiantes registrados</div></div></div>
       <div class="grupos" id="lista"></div>
     </div></div>`;
@@ -312,7 +311,7 @@ $("reiniciar").addEventListener("click", async () => {
 
 $("simular").addEventListener("click", async () => {
   const nombres = ["Laura Gómez", "Andrés Rojas", "Camila Díaz", "Santiago Pérez", "Valentina Ruiz", "Mateo Herrera"];
-  const ejemplo = { 1: [9000, 25000, 4000, 15000, 120000, 13000], 2: ["E-102,T-101,E-101,E-103", "T-101,E-102,E-101,E-103", "T-101,E-101,E-102,E-103", "E-102,T-101,E-101,E-103", "T-101,E-101,E-103,E-102", "E-101,T-101,E-102,E-103"],
+  const ejemplo = { 1: [43763, 37000, 43760, 9600000, 44000, 4.4], 2: [2910, 2900, 2930, 1700, 2910, 30000],
     3: [41013, 41000, 23400, 41010, 40500, 31000], 4: [1.819, 1.82, 2.4, 1.6, 1.819, 1.44], 5: ["material", "volumen", "material", "presion", "material", "platos"],
     6: ["vapor", "mosto", "vapor", "mosto", "fijos", "mosto"], 7: ["C", "D", "A", "C", "B", "D"] };
   let gs = grupos();

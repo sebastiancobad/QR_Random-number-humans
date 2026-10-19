@@ -27,13 +27,13 @@ export const RONDAS = [
   {
     n: 1, tipo: "calcular", corto: "Balance", icono: "droplets",
     titulo: "¿Cuánto vale el etanol que se pierde en la vinaza?",
-    datos: [["droplets", `25${NB}000${NB}kg/h`, "mosto, corriente 1, 8 % en masa de etanol"], ["flame", `3483${NB}kg/h`, "flema, corriente 7, 57.16 % en masa de etanol"],
+    datos: [["droplets", `25${NB}000${NB}kg/h`, `mosto, corriente 1, 8${NB}% en masa de etanol`], ["flame", `99.5${NB}%`, "del etanol sale en la flema, corriente 7"],
             ["coins", `0.60${NB}USD/kg`, "etanol en el mosto"], ["clock", `8000${NB}h/año`, "operación"]],
-    formula: "Pérdida = (ṁ₁·w₁ − ṁ₇·w₇) · horas · precio",
+    formula: "Pérdida = ṁ₁ · w₁ · (1 − R) · horas · precio",
     pregunta: "Costo del etanol que sale en la vinaza, corriente 6, en USD/año",
     unidad: "USD/año", correcta: D.perdida, dec: 0,
-    cadena: [`2000 − 3483 × 0.5716 = ${fmt(D.etoh_vinaza, 1)}${NB}kg/h`, `× 8000${NB}h/año × 0.60${NB}USD/kg`, `${fmt(D.perdida)}${NB}USD/año`],
-    explicacion: "El balance de etanol del PFD fija la recuperación de 99.5 % y el valor del producto que la columna deja ir con la vinaza.",
+    cadena: [`2000${NB}kg/h × 0.005 = 10${NB}kg/h`, `× 8000${NB}h/año × 0.60${NB}USD/kg`, `${fmt(D.perdida)}${NB}USD/año`],
+    explicacion: "La vinaza arrastra 0.5 % del etanol alimentado, 10 kg/h que el ingenio paga y no vende.",
   },
   {
     n: 2, tipo: "calcular", corto: "Costo base", icono: "gauge",
@@ -41,7 +41,7 @@ export const RONDAS = [
     datos: [["gauge", `3.5${NB}kW`, "potencia al eje, A"], ["coins", "3.3892", "K₁"], ["coins", "0.0536", "K₂"], ["coins", "0.1538", "K₃"]],
     formula: "log₁₀ Cp⁰ = K₁ + K₂ log₁₀ A + K₃ (log₁₀ A)²",
     pregunta: "Costo de compra base de la bomba, en USD de 2001",
-    unidad: "USD", correcta: D.cp01, dec: 0,
+    unidad: "USD de 2001", correcta: D.cp01, dec: 0,
     cadena: ["log₁₀ 3.5 = 0.5441", "log₁₀ Cp⁰ = 3.4639", `${fmt(D.cp01)}${NB}USD de 2001`],
     explicacion: "La correlación de Turton da el costo de una bomba centrífuga de hierro fundido a presión ambiente.",
   },
@@ -68,9 +68,9 @@ export const RONDAS = [
   {
     n: 5, tipo: "opcion", corto: "Material", icono: "flame", justificar: true,
     titulo: "¿Qué encarece más la columna?",
-    datos: [["coins", `${fmt(D.r5cs, 3)}${NB}M${NB}USD`, "columna de acero al carbono"], ["gauge", `1${NB}barg`, "presión de diseño, FP = 1"],
+    datos: [["coins", `${fmt(D.r5shell, 3)}${NB}M${NB}USD`, "módulo desnudo de la carcasa de acero al carbono"], ["gauge", `1${NB}barg`, "presión de diseño, FP = 1"],
             ["layers", "3.11", "FM del acero inoxidable"], ["coins", "2.25 y 1.82", "B₁ y B₂ del recipiente"]],
-    formula: "CBM = Cp⁰ · (B₁ + B₂ · FM · FP)",
+    formula: "CBM = Cp⁰ · (B₁ + B₂ · FM · FP)",
     pregunta: "Elija un cambio y justifique",
     opciones: [
       { id: "material", txt: "Acero inoxidable" },
@@ -79,15 +79,15 @@ export const RONDAS = [
       { id: "platos", txt: "30 platos" },
     ],
     correcta: "material",
-    valores: D.r5, unidadValores: "M USD", decValores: 3,
+    valores: D.r5, unidadValores: "M USD más", decValores: 3,
     explicacion: "El factor de material multiplica el término B₂ del módulo desnudo.",
   },
   {
     n: 6, tipo: "opcion", corto: "OPEX", icono: "droplets",
     titulo: "¿Qué pesa más en el costo de operación?",
     datos: [["droplets", `2000${NB}kg/h`, "etanol en el mosto a 0.60 USD/kg"], ["flame", `5.13${NB}t/h`, "vapor a 9.45 USD/t"],
-            ["coins", `3.19${NB}M${NB}USD`, "CAPEX, costos fijos de 5 %"], ["clock", `8000${NB}h/año`, "operación"]],
-    formula: "OPEX = C_RM + C_UT + C_F",
+            ["coins", `3.19${NB}M${NB}USD`, "CAPEX, costos fijos de 5 %"], ["clock", `8000${NB}h/año`, "operación"]],
+    formula: "OPEX = mosto + servicios + costos fijos",
     pregunta: "Elija el rubro mayor del OPEX",
     opciones: [
       { id: "mosto", txt: "Mosto" },
@@ -102,8 +102,8 @@ export const RONDAS = [
   {
     n: 7, tipo: "junta", corto: "La junta", icono: "landmark", justificar: true,
     titulo: "La junta decide",
-    datos: [["wallet", `6${NB}M${NB}USD`, "presupuesto"], ["chart-column", "12 %", "tasa a 10 años"], ["factory", `4${NB}t/h`, "capacidad de la rectificadora"]],
-    nota: "El ingenio tiene mosto para la columna grande. En el escenario bajo el mercado compra solo 2 t/h de etanol.",
+    datos: [["wallet", `6${NB}M${NB}USD`, "presupuesto"], ["chart-column", "12 %", "tasa a 10 años"], ["factory", `4${NB}t/h`, "etanol que recibe la rectificadora"]],
+    nota: "El ingenio tiene mosto para la columna grande. En el escenario bajo el mercado compra solo 2 t/h de etanol. El puntaje combina por mitades el VPN esperado y el VPN del mercado sorteado.",
     pregunta: "Elija una alternativa y justifique con el VPN y el riesgo",
     proyectos: D.proy, escenarios: D.esc, vpn: D.vpn, ev: D.ev,
     explicacion: `La columna de 4 t/h tiene el VPN esperado más alto, ${fmt(D.ev.C, 2)}${NB}M${NB}USD, y en el escenario bajo pierde ${fmt(-D.vpn.bajo.C, 2)}${NB}M${NB}USD.`,
@@ -131,7 +131,7 @@ export function puntaje(n, v, mercado) {
   if (R.tipo === "calcular") {
     const x = Number(v); if (!Number.isFinite(x)) return 0;
     const e = Math.abs(x - R.correcta) / R.correcta;
-    return e <= 0.02 ? 100 : e <= 0.10 ? 70 : e <= 0.25 ? 30 : 0;
+    return e <= 0.02 ? 100 : e <= 0.05 ? 70 : e <= 0.15 ? 30 : 0;
   }
   if (R.tipo === "ordenar") {
     const o = String(v).split(","); if (o.length !== R.correcta.length) return 0;
@@ -142,7 +142,7 @@ export function puntaje(n, v, mercado) {
   if (R.tipo === "junta") {
     if (!mercado) return null;
     const vpn = R.vpn[mercado][v]; if (vpn === undefined) return 0;
-    return Math.max(0, Math.min(100, Math.round(50 + 3 * vpn)));
+    return Math.max(0, Math.min(100, Math.round(50 + 3 * (0.5 * R.ev[v] + 0.5 * vpn))));
   }
   return 0;
 }
@@ -159,6 +159,7 @@ export function tabla(estado, hasta) {
     return { id, nombre: gr.nombre || "Participante", pts, total };
   });
   filas.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre, "es", { numeric: true }));
+  filas.forEach(f => { f.puesto = 1 + filas.filter(x => x.total > f.total).length; });
   return filas;
 }
 

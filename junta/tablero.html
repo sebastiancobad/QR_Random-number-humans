@@ -46,7 +46,7 @@ const $ = id => document.getElementById(id);
 const cuerpo = $("cuerpo");
 let datos;
 try { datos = await import("./datos.js"); }
-catch (e) { console.error(e); cuerpo.innerHTML = `<div class="alerta">No se pudo conectar con Firebase. Abra el tablero con ?demo para ensayar sin red.</div>`; throw e; }
+catch (e) { console.error(e); cuerpo.innerHTML = `<div class="alerta">No se pudo conectar con la base de datos. Revise la conexión y recargue la página.</div>`; throw e; }
 const { escuchar, fijar, registrar, responder, quitarGrupo, reiniciar, sesion, SESION_POR_DEFECTO, CLAVE_PANEL, modoDemo, nuevoId } = datos;
 
 $("modo").textContent = modoDemo ? "Ensayo" : "";
@@ -202,7 +202,7 @@ function svgValores(etiquetas, vals, unidad, dec, ok, votos) {
   const W = 900, fila = 56, H = etiquetas.length * fila + 10, x0 = 300;
   const max = Math.max(...vals.map(Math.abs), 1e-9);
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Valores de cada opción">
-    ${etiquetas.map((e, i) => { const w = (W - x0 - 230) * Math.abs(vals[i]) / max; const bien = i === ok;
+    ${etiquetas.map((e, i) => { const w = (W - x0 - 330) * Math.abs(vals[i]) / max; const bien = i === ok;
       return `<text x="${x0 - 14}" y="${i * fila + 36}" font-size="20" text-anchor="end" fill="#13233A" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-weight="${bien ? 700 : 400}">${esc(e)}</text>
       <rect x="${x0}" y="${i * fila + 12}" width="${Math.max(w, 3)}" height="36" rx="5" fill="${bien ? "#13795B" : "#9AA6B4"}"/>
       <text x="${x0 + Math.max(w, 3) + 12}" y="${i * fila + 37}" font-size="19" fill="#13233A" font-family="IBM Plex Mono, Consolas, monospace" font-weight="600">${fmt(vals[i], dec)} ${unidad}</text>
@@ -213,7 +213,7 @@ function posiciones(hasta, marcarRonda) {
   const t = tabla(estado, hasta);
   if (!t.length) return "<p class='cifra-et'>Todavía no hay participantes.</p>";
   return `<table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${marcarRonda ? "<th>Ronda</th>" : ""}<th>Total</th></tr></thead><tbody>
-    ${t.slice(0, 10).map((f, i) => `<tr class="${i === 0 ? "top1" : ""}"><td class="num">${i + 1}</td><td>${esc(f.nombre)}</td>${marcarRonda ? `<td class="num">${f.pts[marcarRonda] === null ? "" : fmt(f.pts[marcarRonda])}</td>` : ""}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table>`;
+    ${t.slice(0, 10).map(f => `<tr class="${f.puesto === 1 ? "top1" : ""}"><td class="num">${f.puesto}</td><td>${esc(f.nombre)}</td>${marcarRonda ? `<td class="num">${f.pts[marcarRonda] === null ? "" : fmt(f.pts[marcarRonda])}</td>` : ""}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table>`;
 }
 
 function pintarRevelada(R) {
@@ -281,9 +281,9 @@ function pintarFinal() {
   const podio = [t[1], t[0], t[2]];
   cuerpo.innerHTML = `<h2 style="font-family:var(--display);font-size:3rem;margin:0">Resultado de la junta</h2>
     <p class="lead">${ganadores(t)}</p>
-    <div class="podio">${podio.map((f, i) => f ? `<div class="esc e${[2, 1, 3][i]}"><div class="pos">${[2, 1, 3][i]}</div><div class="nom">${esc(f.nombre)}</div><div class="pts">${fmt(f.total)} puntos</div></div>` : "<div></div>").join("")}</div>
+    <div class="podio">${podio.map((f, i) => f ? `<div class="esc e${Math.min(f.puesto, 3)}"><div class="pos">${f.puesto}</div><div class="nom">${esc(f.nombre)}</div><div class="pts">${fmt(f.total)} puntos</div></div>` : "<div></div>").join("")}</div>
     <div class="tarjeta"><table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${[1, 2, 3, 4, 5, 6, 7].map(n => `<th>${RONDAS[n].corto}</th>`).join("")}<th>Total</th></tr></thead><tbody>
-    ${t.map((f, i) => `<tr class="${i === 0 ? "top1" : ""}"><td class="num">${i + 1}</td><td>${esc(f.nombre)}</td>${[1, 2, 3, 4, 5, 6, 7].map(n => `<td class="num">${f.pts[n] === null ? "" : fmt(f.pts[n])}</td>`).join("")}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table></div>`;
+    ${t.map(f => `<tr class="${f.puesto === 1 ? "top1" : ""}"><td class="num">${f.puesto}</td><td>${esc(f.nombre)}</td>${[1, 2, 3, 4, 5, 6, 7].map(n => `<td class="num">${f.pts[n] === null ? "" : fmt(f.pts[n])}</td>`).join("")}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 // --------------------------------------------------------------- pintado general
@@ -332,7 +332,7 @@ $("exportar").addEventListener("click", async () => {
   }
   const t = tabla(estado, rondaContable(estado));
   const resumen = [["Puesto", "Participante", ...[1, 2, 3, 4, 5, 6, 7].map(n => `Ronda ${n} · ${RONDAS[n].corto}`), "Total"],
-    ...t.map((f, i) => [i + 1, f.nombre, ...[1, 2, 3, 4, 5, 6, 7].map(n => f.pts[n] ?? ""), f.total])];
+    ...t.map(f => [f.puesto, f.nombre, ...[1, 2, 3, 4, 5, 6, 7].map(n => f.pts[n] ?? ""), f.total])];
   const legible = (n, v) => { const R = RONDAS[n];
     if (R.tipo === "opcion") { const o = R.opciones.find(z => z.id === v); return o ? o.txt : v; }
     if (R.tipo === "junta") { const p = R.proyectos.find(z => z.id === v); return p ? `${p.id} · ${p.nombre}` : v; }
@@ -352,7 +352,7 @@ $("exportar").addEventListener("click", async () => {
   XLSX.writeFile(wb, `junta-${sesion}.xlsx`);
 });
 
-escuchar(d => { estado = d; pintar(); }, () => { cuerpo.insertAdjacentHTML("afterbegin", `<div class="alerta">Se perdió la conexión con Firebase.</div>`); });
+escuchar(d => { estado = d; pintar(); }, () => { cuerpo.insertAdjacentHTML("afterbegin", `<div class="alerta">Se perdió la conexión con la base de datos.</div>`); });
 </script>
 </body>
 </html>

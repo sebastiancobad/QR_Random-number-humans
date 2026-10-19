@@ -108,6 +108,6 @@ export const DATOS = {
    "pbp": 1.91
   }
  ],
- "perdida": 43763,
- "etoh_vinaza": 9.12
+ "perdida": 48000,
+ "r5shell": 0.166
 };

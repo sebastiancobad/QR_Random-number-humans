@@ -75,7 +75,7 @@
 
 <script type="module">
 import { ICONOS } from "./iconos.js";
-import { RONDAS, N_RONDAS, fmt, puntaje, tabla, rondaContable, datosHTML, cadenaHTML } from "./rondas.js";
+import { RONDAS, N_RONDAS, FIN, fmt, puntaje, tabla, rondaContable, datosHTML, cadenaHTML, contextoHTML } from "./rondas.js";
 
 const $ = id => document.getElementById(id);
 const pintarIconos = (raiz = document) => raiz.querySelectorAll("[data-ico]").forEach(el => { el.innerHTML = ICONOS[el.dataset.ico] || ""; });
@@ -246,7 +246,7 @@ function pintarAvance() {
   const a = $("avance"); a.innerHTML = "";
   for (let n = 1; n <= N_RONDAS; n++) {
     const p = document.createElement("span"); p.className = "p";
-    if (estado.ronda > n || (estado.ronda === n && estado.fase === "revelada") || estado.ronda >= 8) p.classList.add("hecha");
+    if (estado.ronda > n || (estado.ronda === n && estado.fase === "revelada") || estado.ronda >= FIN) p.classList.add("hecha");
     else if (estado.ronda === n) p.classList.add("actual");
     a.appendChild(p);
   }
@@ -271,11 +271,11 @@ function pintar() {
   const gr = estado.g[yo.gid];
   if (r === 0) {
     vista("vEspera");
-    $("esperaTit").textContent = "Registro completo";
-    $("esperaTxt").textContent = "Deje la página abierta.";
+    $("esperaTit").textContent = estado.fase === "caso" ? "Mire el caso en el tablero" : "Registro completo";
+    $("esperaTxt").innerHTML = estado.fase === "caso" ? 'La ronda 1 abre en un momento. <a href="pfd.png" target="_blank" rel="noopener">Ver el diagrama de la columna</a>.' : "Deje la página abierta.";
     return;
   }
-  if (r >= 8) {
+  if (r >= FIN) {
     const m = miPuesto();
     vista("vFinal");
     $("fTit").textContent = `Puesto ${m.puesto} de ${m.n}`;
@@ -296,7 +296,7 @@ function pintar() {
       vista("vRonda");
       $("rEtq").textContent = `Ronda ${r} de ${N_RONDAS} · ${R.corto}`;
       $("rTit").textContent = R.titulo;
-      $("rCtx").innerHTML = datosHTML(R, ICONOS) + (R.nota ? `<p class="nota">${R.nota}</p>` : "");
+      $("rCtx").innerHTML = contextoHTML(R) + datosHTML(R, ICONOS) + (R.nota ? `<p class="nota">${R.nota}</p>` : "");
       $("rFor").hidden = !R.formula; $("rFor").textContent = R.formula || "";
       $("rPre").textContent = R.pregunta;
       $("rJus").hidden = !R.justificar;

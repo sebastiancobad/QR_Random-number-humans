@@ -43,7 +43,7 @@ button, input, textarea { font-family: inherit; font-size: inherit; color: inher
 .cel h1 { font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1.05; margin: 18px 0 8px; text-wrap: balance; }
 .cel .etq { font-family: var(--display); font-weight: 600; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--oro); margin-top: 18px; }
 .contexto { background: var(--hoja); border: 1px solid var(--linea); border-left: 4px solid var(--azul); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
-.formula { font-family: var(--mono); font-size: 1.15rem; background: var(--azul-claro); color: var(--azul); border-radius: 8px; padding: 10px 12px; margin: 10px 0; text-align: center; }
+.formula { white-space: pre-line; font-family: var(--mono); font-size: 1.15rem; background: var(--azul-claro); color: var(--azul); border-radius: 8px; padding: 10px 12px; margin: 10px 0; text-align: center; }
 .pregunta { font-weight: 600; margin: 14px 0 10px; }
 .campo { display: grid; gap: 6px; margin: 12px 0; }
 .campo label { font-weight: 600; font-size: .95rem; }
@@ -202,3 +202,20 @@ textarea:focus { outline: none; border-color: var(--azul); }
 .tile span { color: var(--gris); font-size: 1.05rem; }
 .tile.op { grid-template-columns: 2.6rem 1fr; align-items: center; }
 .tile .le { width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--azul); color: #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 1.2rem; }
+
+/* contexto teórico de cada ronda y caso */
+.contexto p { margin: 0 0 6px; line-height: 1.4; }
+.contexto p:last-of-type { margin-bottom: 0; }
+.contexto .figura { display: block; margin-top: 10px; }
+.contexto .figura img { width: 100%; height: auto; display: block; border-radius: 6px; background: #fff; }
+.ronda .contexto p { font-size: 1.25rem; }
+.ronda .contexto .figura img { max-height: 46vh; object-fit: contain; }
+.caso { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 34px; align-items: start; }
+.caso h2 { font-family: var(--display); font-weight: 700; font-size: 3rem; line-height: 1.02; margin: 0 0 14px; }
+.caso .etq { font-family: var(--display); font-weight: 700; font-size: 1.05rem; letter-spacing: .1em; text-transform: uppercase; color: var(--oro); }
+.caso .lead { font-size: 1.35rem; margin: 0 0 12px; }
+.caso .pfd { width: 100%; height: auto; background: #fff; border-radius: 10px; padding: 8px; }
+@media (max-width: 980px) { .caso { grid-template-columns: minmax(0, 1fr); } }
+.ronda .contexto.config { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: center; }
+.ronda .contexto.config .figura { margin-top: 0; }
+@media (max-width: 980px) { .ronda .contexto.config { grid-template-columns: minmax(0, 1fr); } }

@@ -3,7 +3,7 @@
 Actividad de la sesión de evaluación económica de Diseño de Plantas Químicas.
 Es un concurso individual. Cada estudiante asesora a la junta de una empresa de
 servicios ambientales sobre una columna que recupera acetona del agua de lavado de
-plantas farmacéuticas. En siete rondas calculan
+plantas farmacéuticas. En diez rondas de economía y de seguridad, salud y ambiente (HSE) calculan
 y deciden, y el tablero del salón muestra la clasificación en vivo.
 El primer puesto gana la nota del concurso.
 
@@ -17,8 +17,9 @@ ronda abierta.
 
 ## Rondas
 
-Cada ronda se abre en el punto del deck que indica su lámina "Ronda N", después
-de la teoría que necesita. El celular muestra los datos y la fórmula.
+La sesión completa se dicta con el tablero. "Presentar el caso" muestra el enunciado y el
+diagrama de flujo de proceso (PFD) antes de la ronda 1. Cada ronda muestra en el tablero y en
+el celular la teoría mínima, los datos y la fórmula que necesita.
 
 | Ronda | Tipo | Contenido |
 |---|---|---|
@@ -28,11 +29,14 @@ de la teoría que necesita. El celular muestra los datos y la fórmula.
 | 4 | Cálculo | Regla de los seis décimos |
 | 5 | Selección y justificación | Cambio que más encarece la columna |
 | 6 | Selección | Rubro dominante del OPEX |
-| 7 | Decisión y justificación | Cuatro alternativas de inversión y sorteo del precio de la acetona recuperada |
+| 7 | Cálculo | DQO del agua de fondos que va a tratamiento |
+| 8 | Selección y justificación | Escenario que fija la válvula de alivio de T-401 |
+| 9 | Cálculo | Reducción del VPN por las medidas de seguridad del HAZOP |
+| 10 | Decisión y justificación | Cuatro alternativas de inversión y sorteo del precio de la acetona recuperada |
 
-Las rondas 1 a 6 dan de 0 a 100 puntos. La ronda 7 da 50 + 3 × (0.5 × VPN esperado + 0.5 × VPN del escenario sorteado),
+Las rondas 1 a 9 dan de 0 a 100 puntos. La ronda 10 da 50 + 12 × (0.5 × VPN esperado + 0.5 × VPN del escenario sorteado),
 en M USD, redondeado y acotado entre 0 y 100 puntos. Con empate en el primer
-puesto, el profesor decide la nota con la justificación de la ronda 7.
+puesto, el profesor decide la nota con la justificación de la ronda 10.
 
 ## Datos
 
@@ -50,9 +54,12 @@ tablero de `assets/config.js`.
 ## El día de la clase
 
 1. Proyecte `tablero.html`. Cada estudiante escanea el QR y escribe su nombre y apellido.
-2. "Abrir la ronda" publica la pregunta en los celulares.
-3. "Revelar la respuesta" muestra el valor correcto, la distribución de
+2. "Presentar el caso" muestra el enunciado y el PFD de la columna.
+3. "Abrir la ronda" publica la pregunta en los celulares.
+4. "Revelar la respuesta" muestra el valor correcto, la distribución de
    respuestas, la explicación y la clasificación.
-4. En la ronda 7, "Sortear el mercado" elige el precio de la acetona recuperada con las
+5. En la ronda 10, "Sortear el mercado" elige el precio de la acetona recuperada con las
    probabilidades del enunciado y asigna los puntos.
-5. "Volver a abrir" reabre la ronda si algún estudiante no alcanzó a responder.
+6. "Volver a abrir" reabre la ronda si algún estudiante no alcanzó a responder.
+
+Antes de la clase pulse "Reiniciar la junta" o use una sesión nueva con `?s=`, porque una sesión jugada con la versión de siete rondas guarda otra numeración.

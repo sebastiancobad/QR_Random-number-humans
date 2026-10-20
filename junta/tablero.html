@@ -39,7 +39,8 @@
 
 <script type="module">
 import { ICONOS } from "./iconos.js";
-import { RONDAS, N_RONDAS, fmt, puntaje, tabla, rondaContable, sortearMercado, datosHTML, cadenaHTML } from "./rondas.js";
+import { RONDAS, N_RONDAS, FIN, CASO, fmt, puntaje, tabla, rondaContable, sortearMercado, datosHTML, cadenaHTML, contextoHTML } from "./rondas.js";
+const TODAS = Array.from({ length: N_RONDAS }, (_, k) => k + 1);
 import QRCode from "../assets/qrcode.js";
 
 const $ = id => document.getElementById(id);
@@ -74,30 +75,30 @@ function pintarCabecera() {
   const a = $("avance"), nm = $("nombres"); a.innerHTML = ""; nm.innerHTML = "";
   for (let n = 1; n <= N_RONDAS; n++) {
     const p = document.createElement("span"); p.className = "p";
-    if (estado.ronda > n || (estado.ronda === n && estado.fase === "revelada") || estado.ronda >= 8) p.classList.add("hecha");
+    if (estado.ronda > n || (estado.ronda === n && estado.fase === "revelada") || estado.ronda >= FIN) p.classList.add("hecha");
     else if (estado.ronda === n) p.classList.add("actual");
     a.appendChild(p);
     const s = document.createElement("span"); s.textContent = RONDAS[n].corto; nm.appendChild(s);
   }
   const r = estado.ronda, f = estado.fase, R = RONDAS[r];
   let txt = "";
-  if (r === 0) txt = "Abrir la ronda 1";
-  else if (r >= 8) txt = "Junta terminada";
+  if (r === 0) txt = f === "caso" ? "Abrir la ronda 1" : "Presentar el caso";
+  else if (r >= FIN) txt = "Junta terminada";
   else if (f === "abierta") txt = "Revelar la respuesta";
   else if (R.tipo === "junta" && !estado.mercado) txt = "Sortear el mercado";
   else txt = r === N_RONDAS ? "Ver el resultado final" : `Abrir la ronda ${r + 1}`;
   $("principal").textContent = txt;
-  $("principal").disabled = r >= 8;
+  $("principal").disabled = r >= FIN;
   $("atras").hidden = !(r >= 1 && r <= N_RONDAS && f === "revelada");
 }
 
 $("principal").addEventListener("click", async () => {
   const r = estado.ronda, f = estado.fase, R = RONDAS[r];
-  if (r === 0) return fijar({ ronda: 1, fase: "abierta", reab: null });
-  if (r >= 8) return;
+  if (r === 0) return f === "caso" ? fijar({ ronda: 1, fase: "abierta", reab: null }) : fijar({ fase: "caso" });
+  if (r >= FIN) return;
   if (f === "abierta") return fijar({ fase: "revelada" });
   if (R.tipo === "junta" && !estado.mercado) return sortear();
-  return fijar(r === N_RONDAS ? { ronda: 8, reab: null } : { ronda: r + 1, fase: "abierta", reab: null });
+  return fijar(r === N_RONDAS ? { ronda: FIN, reab: null } : { ronda: r + 1, fase: "abierta", reab: null });
 });
 $("atras").addEventListener("click", () => fijar({ fase: "abierta", reab: estado.ronda, ...(RONDAS[estado.ronda].tipo === "junta" ? { mercado: null } : {}) }));
 $("completa").addEventListener("click", () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); });
@@ -123,6 +124,17 @@ function pintarListaSala() {
   l.querySelectorAll(".x").forEach(b => b.addEventListener("click", () => { if (confirm("¿Quitar este participante de la junta?")) quitarGrupo(b.dataset.id); }));
 }
 
+// --------------------------------------------------------------- caso
+function pintarCaso() {
+  cuerpo.innerHTML = `<div class="caso">
+    <div>
+      <div class="etq">El caso</div>
+      <h2>${esc(CASO.titulo)}</h2>
+      ${CASO.parrafos.map(p => `<p class="lead">${p}</p>`).join("")}
+    </div>
+    <img class="pfd" src="${CASO.figura}" alt="Diagrama de flujo de proceso de la columna de recuperación de acetona"></div>`;
+}
+
 // --------------------------------------------------------------- ronda abierta
 function pintarAbierta(R) {
   let extra = "";
@@ -133,6 +145,7 @@ function pintarAbierta(R) {
     <div>
       <div class="etq">Ronda ${R.n} de ${N_RONDAS}</div>
       <h2>${esc(R.titulo)}</h2>
+      ${contextoHTML(R, !!R.figuraTablero)}
       ${datosHTML(R, ICONOS)}
       ${R.nota ? `<p class="cifra-et">${esc(R.nota)}</p>` : ""}
       ${R.formula ? `<div class="formula">${esc(R.formula)}</div>` : ""}
@@ -199,10 +212,10 @@ function svgBarras(etiquetas, cuentas, correcta) {
 }
 
 function svgValores(etiquetas, vals, unidad, dec, ok, votos) {
-  const W = 900, fila = 56, H = etiquetas.length * fila + 10, x0 = 300;
+  const W = 900, fila = 56, H = etiquetas.length * fila + 10, x0 = 430;
   const max = Math.max(...vals.map(Math.abs), 1e-9);
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Valores de cada opción">
-    ${etiquetas.map((e, i) => { const w = (W - x0 - 330) * Math.abs(vals[i]) / max; const bien = i === ok;
+    ${etiquetas.map((e, i) => { const w = (W - x0 - 250) * Math.abs(vals[i]) / max; const bien = i === ok;
       return `<text x="${x0 - 14}" y="${i * fila + 36}" font-size="20" text-anchor="end" fill="#13233A" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-weight="${bien ? 700 : 400}">${esc(e)}</text>
       <rect x="${x0}" y="${i * fila + 12}" width="${Math.max(w, 3)}" height="36" rx="5" fill="${bien ? "#13795B" : "#9AA6B4"}"/>
       <text x="${x0 + Math.max(w, 3) + 12}" y="${i * fila + 37}" font-size="19" fill="#13233A" font-family="IBM Plex Mono, Consolas, monospace" font-weight="600">${fmt(vals[i], dec)} ${unidad}</text>
@@ -282,8 +295,8 @@ function pintarFinal() {
   cuerpo.innerHTML = `<h2 style="font-family:var(--display);font-size:3rem;margin:0">Resultado de la junta</h2>
     <p class="lead">${ganadores(t)}</p>
     <div class="podio">${podio.map((f, i) => f ? `<div class="esc e${Math.min(f.puesto, 3)}"><div class="pos">${f.puesto}</div><div class="nom">${esc(f.nombre)}</div><div class="pts">${fmt(f.total)} puntos</div></div>` : "<div></div>").join("")}</div>
-    <div class="tarjeta"><table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${[1, 2, 3, 4, 5, 6, 7].map(n => `<th>${RONDAS[n].corto}</th>`).join("")}<th>Total</th></tr></thead><tbody>
-    ${t.map(f => `<tr class="${f.puesto === 1 ? "top1" : ""}"><td class="num">${f.puesto}</td><td>${esc(f.nombre)}</td>${[1, 2, 3, 4, 5, 6, 7].map(n => `<td class="num">${f.pts[n] === null ? "" : fmt(f.pts[n])}</td>`).join("")}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table></div>`;
+    <div class="tarjeta"><table class="posiciones"><thead><tr><th>#</th><th>Participante</th>${TODAS.map(n => `<th>${RONDAS[n].corto}</th>`).join("")}<th>Total</th></tr></thead><tbody>
+    ${t.map(f => `<tr class="${f.puesto === 1 ? "top1" : ""}"><td class="num">${f.puesto}</td><td>${esc(f.nombre)}</td>${TODAS.map(n => `<td class="num">${f.pts[n] === null ? "" : fmt(f.pts[n])}</td>`).join("")}<td class="num">${fmt(f.total)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 // --------------------------------------------------------------- pintado general
@@ -293,12 +306,12 @@ function pintar() {
   pintarCabecera();
   const r = estado.ronda, R = RONDAS[r];
   const f = `${r}|${estado.fase}|${estado.mercado}|${estado.rev}`;
-  if (f !== firma || estado.fase === "revelada" || r >= 8) {
-    if (r === 0) { if (f !== firma) pintarSala(); else pintarListaSala(); }
-    else if (r >= 8) pintarFinal();
+  if (f !== firma || estado.fase === "revelada" || r >= FIN) {
+    if (r === 0) { if (estado.fase === "caso") { if (f !== firma) pintarCaso(); } else if (f !== firma) pintarSala(); else pintarListaSala(); }
+    else if (r >= FIN) pintarFinal();
     else if (estado.fase === "abierta") { if (f !== firma) pintarAbierta(R); else pintarListaRonda(R); }
     else if (!sorteando) pintarRevelada(R);
-  } else if (r === 0) pintarListaSala();
+  } else if (r === 0) { if (estado.fase !== "caso") pintarListaSala(); }
   else pintarListaRonda(R);
   firma = f;
 }
@@ -313,11 +326,12 @@ $("simular").addEventListener("click", async () => {
   const nombres = ["Laura Gómez", "Andrés Rojas", "Camila Díaz", "Santiago Pérez", "Valentina Ruiz", "Mateo Herrera"];
   const ejemplo = { 1: [92480, 94000, 3800000, 92500, 11.6, 90000], 2: [10255, 10300, 9000, 10250, 20600, 4300],
     3: [11821, 11800, 6850, 11820, 11500, 9000], 4: [0.834, 0.83, 1.1, 0.7, 0.834, 0.66], 5: ["material", "volumen", "material", "presion", "material", "platos"],
-    6: ["vapor", "mosto", "vapor", "mosto", "fijos", "mosto"], 7: ["C", "D", "A", "C", "B", "D"] };
+    6: ["vapor", "mosto", "vapor", "mosto", "fijos", "mosto"], 7: [7068, 7000, 3207, 7070, 1600, 6900],
+    8: ["agua", "fuego", "agua", "vapor", "agua", "alim"], 9: [93901, 60000, 94000, 33901, 93900, 120000], 10: ["C", "D", "A", "C", "B", "D"] };
   let gs = grupos();
   if (gs.length < 3) { for (const n of nombres) await registrar("g" + nuevoId(), n); gs = grupos(); }
   const r = estado.ronda;
-  if (r >= 1 && r <= N_RONDAS) {
+  if (r >= 1 && r <= N_RONDAS && ejemplo[r]) {
     let k = 0;
     for (const [id, g] of grupos()) { const v = ejemplo[r][k % 6]; k++; if (g.r && g.r[r]) continue; await responder(id, r, v, RONDAS[r].justificar ? "Respuesta de ejemplo para ensayar el tablero sin red." : ""); }
   }
@@ -331,8 +345,8 @@ $("exportar").addEventListener("click", async () => {
     if (!window.XLSX) return;
   }
   const t = tabla(estado, rondaContable(estado));
-  const resumen = [["Puesto", "Participante", ...[1, 2, 3, 4, 5, 6, 7].map(n => `Ronda ${n} · ${RONDAS[n].corto}`), "Total"],
-    ...t.map(f => [f.puesto, f.nombre, ...[1, 2, 3, 4, 5, 6, 7].map(n => f.pts[n] ?? ""), f.total])];
+  const resumen = [["Puesto", "Participante", ...TODAS.map(n => `Ronda ${n} · ${RONDAS[n].corto}`), "Total"],
+    ...t.map(f => [f.puesto, f.nombre, ...TODAS.map(n => f.pts[n] ?? ""), f.total])];
   const legible = (n, v) => { const R = RONDAS[n];
     if (R.tipo === "opcion") { const o = R.opciones.find(z => z.id === v); return o ? o.txt : v; }
     if (R.tipo === "junta") { const p = R.proyectos.find(z => z.id === v); return p ? `${p.id} · ${p.nombre}` : v; }
@@ -342,7 +356,7 @@ $("exportar").addEventListener("click", async () => {
   const just = [["Id", "Participante", "Ronda", "Justificación"]];
   for (const [id, g] of grupos()) for (let n = 1; n <= N_RONDAS; n++) {
     const x = g.r && g.r[n]; if (!x) continue;
-    resp.push([id, g.nombre, n, legible(n, x.v), puntaje(n, x.v, estado.mercado) ?? "", new Date(x.t)]);
+    resp.push([id, g.nombre, n, legible(n, x.v), n <= rondaContable(estado) ? (puntaje(n, x.v, estado.mercado) ?? "") : "", new Date(x.t)]);
     if (x.j) just.push([id, g.nombre, n, x.j]);
   }
   const wb = XLSX.utils.book_new();

@@ -94,6 +94,18 @@ export const DATOS = {
    "pbp": 1.89
   }
  ],
+ "hse": {
+  "dqo": 7068,
+  "dqo_esp": 2.204,
+  "q_fondos": 5.301,
+  "mbar": 56.08,
+  "w_agua": 1242,
+  "q_fuego": 462,
+  "w_fuego": 741,
+  "vpn1": 1.897,
+  "vpn_hse": 1.803,
+  "af": 5.6502
+ },
  "rec": 97.64,
  "ace_fondos": 17.0,
  "V_T": 8.62

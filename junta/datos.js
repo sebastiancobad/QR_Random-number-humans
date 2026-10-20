@@ -3,9 +3,10 @@
 //  Un documento por sesión en la colección "sesiones" del proyecto azar-tadeo:
 //    sesiones/{sesion} -> {
 //      junta: true,
-//      ronda: 0 sala de espera, 1 a 7 rondas, 8 resultado final,
-//      fase: "abierta" | "revelada",
-//      mercado: null | "bajo" | "base" | "alto"   (sorteo de la ronda 7),
+//      ronda: 0 sala de espera o caso, 1 a 10 rondas, 11 resultado final,
+//      fase: "abierta" | "revelada" | "caso" (solo en la ronda 0),
+//      mercado: null | "bajo" | "base" | "alto"   (sorteo de la ronda 10),
+//      reab: número de la ronda reabierta con "Volver a abrir", o null,
 //      rev: número de reinicios,
 //      g: { <id del grupo>: { nombre, r: { <ronda>: { v, j, t } } } }
 //    }

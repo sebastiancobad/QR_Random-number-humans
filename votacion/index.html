@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="votacion.css">
+<link rel="stylesheet" href="votacion.css?v=3">
 </head>
 <body>
 <main class="cel">
@@ -42,7 +42,7 @@ const $ = id => document.getElementById(id);
 const estado = $("estado");
 let datos;
 try {
-  datos = await import("./datos.js");
+  datos = await import("./datos.js?v=3");
 } catch (e) {
   console.error(e);
   estado.textContent = "No fue posible conectar. Revisa tu conexión y recarga la página.";

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1630">
+<title>Vota tu proyecto favorito · Principios de Ingeniería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="votacion.css">
+</head>
+<body>
+<main class="cel">
+  <section id="pantallaVoto">
+    <header>
+      <div class="eyebrow">Principios de Ingeniería · 2026-2S</div>
+      <h1>¿Cuál proyecto te gustó más?</h1>
+      <p>Toca un proyecto y envía tu voto. Un voto por celular.</p>
+    </header>
+    <div class="lista" id="lista" role="radiogroup" aria-label="Proyectos"></div>
+    <button class="enviar" id="enviar" type="button" disabled>Enviar mi voto</button>
+    <div class="estado" id="estado" aria-live="polite"></div>
+  </section>
+
+  <section id="pantallaGracias" class="gracias oculto" aria-live="polite">
+    <div class="medalla" id="medalla">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2>¡Voto registrado!</h2>
+    <p id="graciasTxt">Gracias por participar. Mira los resultados en la pantalla del salón.</p>
+  </section>
+
+  <section id="pantallaCerrada" class="gracias oculto">
+    <h2>Votación cerrada</h2>
+    <p>El profesor cerró la votación. Mira los resultados en la pantalla del salón.</p>
+  </section>
+</main>
+
+<script type="module">
+const $ = id => document.getElementById(id);
+const estado = $("estado");
+let datos;
+try {
+  datos = await import("./datos.js");
+} catch (e) {
+  console.error(e);
+  estado.textContent = "No fue posible conectar. Revisa tu conexión y recarga la página.";
+}
+
+if (datos) {
+  const { PROYECTOS, api, sesion } = datos;
+  const claveLocal = "votado:" + sesion;
+  let elegido = null, rev = null, abierta = true;
+
+  const lista = $("lista");
+  // Orden aleatorio por celular para no favorecer al primero de la lista.
+  const orden = [...PROYECTOS].sort(() => Math.random() - 0.5);
+  for (const p of orden) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "op"; b.role = "radio";
+    b.setAttribute("aria-checked", "false");
+    b.style.setProperty("--c", p.color);
+    b.dataset.id = p.id;
+    b.innerHTML = `<span class="ini">${p.nombre[0]}</span>
+      <span><span class="nom"></span>${p.sub ? '<span class="sub"></span>' : ""}</span>
+      <span class="chk" aria-hidden="true"></span>`;
+    b.querySelector(".nom").textContent = p.nombre;
+    if (p.sub) b.querySelector(".sub").textContent = p.sub;
+    b.addEventListener("click", () => {
+      elegido = p.id;
+      lista.querySelectorAll(".op").forEach(x => {
+        const s = x.dataset.id === p.id;
+        x.classList.toggle("sel", s); x.setAttribute("aria-checked", String(s));
+      });
+      $("enviar").disabled = false;
+    });
+    lista.appendChild(b);
+  }
+
+  function mostrar(cual) {
+    for (const id of ["pantallaVoto", "pantallaGracias", "pantallaCerrada"])
+      $(id).classList.toggle("oculto", id !== cual);
+  }
+
+  function yaVoto() {
+    try { const g = JSON.parse(localStorage.getItem(claveLocal) || "null"); return g && g.rev === rev ? g : null; }
+    catch { return null; }
+  }
+
+  function pintarGracias(g) {
+    const p = PROYECTOS.find(x => x.id === g.id);
+    if (p) {
+      $("medalla").style.setProperty("--c", p.color);
+      $("graciasTxt").textContent = `Votaste por ${p.nombre}. Mira los resultados en la pantalla del salón.`;
+    }
+    mostrar("pantallaGracias");
+  }
+
+  function refrescar() {
+    const g = yaVoto();
+    if (g) return pintarGracias(g);
+    mostrar(abierta ? "pantallaVoto" : "pantallaCerrada");
+  }
+
+  api.escuchar(e => { rev = e.rev || 0; abierta = e.abierta !== false; refrescar(); },
+    () => { estado.textContent = "Se perdió la conexión. Recarga la página."; });
+
+  $("enviar").addEventListener("click", async () => {
+    if (!elegido || yaVoto()) return;
+    $("enviar").disabled = true; estado.textContent = "Enviando…";
+    try {
+      await api.votar(elegido);
+      const g = { id: elegido, rev };
+      try { localStorage.setItem(claveLocal, JSON.stringify(g)); } catch {}
+      estado.textContent = "";
+      pintarGracias(g);
+    } catch (err) {
+      console.error(err);
+      estado.textContent = "No se pudo enviar. Intenta de nuevo.";
+      $("enviar").disabled = false;
+    }
+  });
+}
+</script>
+</body>
+</html>

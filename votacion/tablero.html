@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero · Proyecto favorito · Principios de Ingeniería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="votacion.css">
+</head>
+<body>
+<div class="tab">
+  <header class="tab-cab">
+    <div>
+      <div class="eyebrow">Feria de proyectos · 2026-2S</div>
+      <h1>¿Cuál proyecto te gustó más?</h1>
+      <div class="curso">Principios de Ingeniería · Utadeo · Prof. Sebastián Coba</div>
+    </div>
+    <div class="qr">
+      <canvas id="qr" width="520" height="520" aria-label="Código QR para votar"></canvas>
+      <div>
+        <div class="cuenta" id="cuenta">0</div>
+        <div class="et" id="cuentaEt">votos</div>
+        <div class="url" id="url"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="cuerpo">
+    <div class="velo" id="velo">
+      <div>
+        <div class="serif">Escanea el código y vota</div>
+        <div>Los resultados aparecen cuando el profesor los muestre.</div>
+      </div>
+    </div>
+    <div class="barras oculto" id="barras"></div>
+  </main>
+
+  <footer class="tab-pie">
+    <button class="btn prim" id="revelar" type="button">Mostrar resultados</button>
+    <button class="btn" id="cerrar" type="button">Cerrar votación</button>
+    <button class="btn" id="pantalla" type="button">Pantalla completa</button>
+    <div class="der mini">Sesión <span id="ses"></span><button id="reset" type="button">Reiniciar conteo</button></div>
+  </footer>
+</div>
+
+<script type="module">
+import QRCode from "../assets/qrcode.js";
+const $ = id => document.getElementById(id);
+
+let datos;
+try { datos = await import("./datos.js"); }
+catch (e) { console.error(e); $("velo").innerHTML = '<div class="serif">Sin conexión con la base de datos</div>'; }
+
+const urlVoto = new URL("./", location.href);
+const qs = new URLSearchParams(location.search);
+if (qs.get("s")) urlVoto.searchParams.set("s", qs.get("s"));
+if (qs.has("demo")) urlVoto.searchParams.set("demo", "");
+const enlace = urlVoto.href.replace("demo=", "demo");
+$("url").textContent = enlace.replace(/^https?:\/\//, "");
+QRCode.toCanvas($("qr"), enlace, { width: 520, margin: 1, color: { dark: "#0E1630", light: "#FFFFFF" } });
+
+if (datos) {
+  const { PROYECTOS, api, sesion, CLAVE_PANEL } = datos;
+  $("ses").textContent = sesion;
+  let visible = false, ultimo = null;
+
+  const barras = $("barras");
+  for (const p of PROYECTOS) {
+    const f = document.createElement("div");
+    f.className = "fila"; f.dataset.id = p.id; f.style.setProperty("--c", p.color);
+    f.innerHTML = `<div class="rot"><span class="ini">${p.nombre[0]}</span><span class="nom"></span></div>
+      <div class="pista"><div class="relleno"></div></div>
+      <div class="num"><span class="v">0</span><span class="pct">0 %</span></div>`;
+    f.querySelector(".nom").textContent = p.nombre;
+    barras.appendChild(f);
+  }
+
+  function pintar() {
+    const e = ultimo; if (!e) return;
+    $("cuenta").textContent = e.n || 0;
+    $("cuentaEt").textContent = e.n === 1 ? "voto" : "votos";
+    $("cerrar").textContent = e.abierta === false ? "Abrir votación" : "Cerrar votación";
+    $("velo").classList.toggle("oculto", visible);
+    barras.classList.toggle("oculto", !visible);
+    if (!visible) return;
+    const vals = PROYECTOS.map(p => ({ id: p.id, v: e["v_" + p.id] || 0 }));
+    const max = Math.max(1, ...vals.map(x => x.v));
+    const total = vals.reduce((s, x) => s + x.v, 0);
+    // Reordena las filas de mayor a menor votación.
+    vals.sort((a, b) => b.v - a.v);
+    vals.forEach((x, i) => {
+      const f = barras.querySelector(`[data-id="${x.id}"]`);
+      barras.appendChild(f);
+      f.querySelector(".relleno").style.width = (100 * x.v / max) + "%";
+      f.querySelector(".v").textContent = x.v;
+      f.querySelector(".pct").textContent = total ? Math.round(100 * x.v / total) + " %" : "0 %";
+      f.classList.toggle("lider", i === 0 && x.v > 0 && x.v > (vals[1]?.v ?? 0));
+    });
+  }
+
+  api.escuchar(e => { ultimo = e; pintar(); });
+
+  $("revelar").addEventListener("click", () => {
+    visible = !visible;
+    $("revelar").textContent = visible ? "Ocultar resultados" : "Mostrar resultados";
+    pintar();
+  });
+  $("cerrar").addEventListener("click", () => api.abrir(ultimo?.abierta === false));
+  $("pantalla").addEventListener("click", () =>
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+  $("reset").addEventListener("click", async () => {
+    const c = prompt("Clave del panel para reiniciar el conteo:");
+    if (c === null) return;
+    if (c !== CLAVE_PANEL) return alert("Clave incorrecta.");
+    await api.reiniciar(ultimo?.rev || 0);
+  });
+}
+</script>
+</body>
+</html>

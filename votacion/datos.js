@@ -17,6 +17,7 @@ export const PROYECTOS = [
   { id: "sglu", nombre: "SGLU", sub: "Sistema de Gestión de Limpieza Universitaria", color: "#8B5CF6" },
   { id: "bionova", nombre: "Bionova", sub: "", color: "#5FA132" },
   { id: "vinx", nombre: "Vinx", sub: "", color: "#E0A100" },
+  { id: "pulpa", nombre: "Pulpa de Café", sub: "", color: "#A0522D" },
 ];
 
 export const SESION_POR_DEFECTO = "voto-pi-2026-2s";
